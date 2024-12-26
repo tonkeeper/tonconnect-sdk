@@ -29,7 +29,7 @@ export interface TonConnectUiOptions {
     /**
      * App name of the wallet to display prominently in the wallets list.
      */
-    primaryWalletAppName?: string;
+    primaryWalletAppName?: string | null;
 
     /**
      * Configuration for action-period (e.g. sendTransaction) UI elements: modals and notifications and wallet behaviour (return strategy).

@@ -242,7 +242,10 @@ export class TonConnectUI {
 
         this.walletsList = this.getWallets();
 
-        this.primaryWalletAppName = options.primaryWalletAppName;
+        this.primaryWalletAppName =
+            options.primaryWalletAppName === null
+                ? undefined
+                : options.primaryWalletAppName ?? 'tonkeeper';
 
         this.walletsList.then(list => preloadImages(uniq(list.map(item => item.imageUrl))));
 

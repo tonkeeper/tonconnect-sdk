@@ -1,6 +1,6 @@
 import { useCallback, useContext } from 'react';
 import { TonConnectUIContext } from '../components/TonConnectUIProvider';
-import { TonConnectUI, TonConnectUiOptions } from '@tonconnect/ui';
+import { TonConnectUI, TonConnectUiOptions } from '@tonkeeper/tonconnect-ui';
 import { checkProvider } from '../utils/errors';
 import { isServerSide } from '../utils/web';
 

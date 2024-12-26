@@ -1,4 +1,4 @@
-import { TonConnectUI } from '@tonconnect/ui';
+import { TonConnectUI } from '@tonkeeper/tonconnect-ui';
 import { TonConnectProviderNotSetError } from '../errors/ton-connect-provider-not-set.error';
 
 export function checkProvider(provider: TonConnectUI | null): provider is TonConnectUI {
