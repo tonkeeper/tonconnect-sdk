@@ -5,7 +5,7 @@
 ## Installation
 
 ```bash
-npm i @tonkeeper/ton-connect-ui
+npm i @tonkeeper/tonconnect-ui
 ```
 ## Key Differences from Official TonConnect UI
 
@@ -60,7 +60,7 @@ You can find more details and the protocol specification in the [docs](https://d
 ## Installation
 
 ```bash
-npm i @tonkeeper/ton-connect-ui
+npm i @tonkeeper/tonconnect-ui
 ```
 
 # Usage
