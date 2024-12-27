@@ -1,6 +1,6 @@
 {
   "name": "@tonkeeper/tonconnect-ui-react",
-  "version": "2.0.11",
+  "version": "2.0.12",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build"
@@ -52,7 +52,7 @@
     "vite-plugin-dts": "^1.7.1"
   },
   "dependencies": {
-    "@tonkeeper/tonconnect-ui": "2.0.11"
+    "@tonkeeper/tonconnect-ui": "2.0.12"
   },
   "peerDependencies": {
     "react": ">=17.0.0",
