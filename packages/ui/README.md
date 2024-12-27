@@ -1,43 +1,67 @@
-# TON Connect UI
+# TON Connect UI by Tonkeeper
 
-TonConnect UI is a UI kit for TonConnect SDK. Use it to connect your app to TON wallets via TonConnect protocol.
+> This is a Tonkeeper-maintained fork of the official [TonConnect UI](https://github.com/ton-connect/sdk/tree/main/packages/ui) with additional features and improvements. While maintaining compatibility with the core TonConnect protocol, this fork includes Tonkeeper-specific enhancements for better integration with Tonkeeper wallet and extended functionality.
 
-If you use React for your dapp, take a look at [TonConnect UI React kit](https://github.com/ton-connect/sdk/tree/main/packages/ui-react).
+## Installation
 
-If you want to use TonConnect on the server side, you should use the [TonConnect SDK](https://github.com/ton-connect/sdk/tree/main/packages/sdk).
+```bash
+npm i @tonkeeper/ton-connect-ui
+```
+## Key Differences from Official TonConnect UI
+
+- Ability to set primary wallet
+- Tonkeeper is installed by default
+
+### Set Primary Wallet or Disable Default Wallet
+
+This package allows you to specify a primary wallet for your dApp or disable the default wallet. Use the `primaryWalletAppName` prop in the `TonConnectUIProvider` component.
+
+To **set a primary wallet**, pass its `appName` to the `primaryWalletAppName` prop:
+
+```tsx
+<TonConnectUIProvider
+  manifestUrl="https://<YOUR_APP_URL>/tonconnect-manifest.json"
+  primaryWalletAppName="tonkeeper"
+>
+  {/* Your app components */}
+</TonConnectUIProvider>
+```
+
+To **disable the default wallet** (tonkeeper as default), set the `primaryWalletAppName` to `null`:
+
+```tsx
+<TonConnectUIProvider
+  manifestUrl="https://<YOUR_APP_URL>/tonconnect-manifest.json"
+  primaryWalletAppName={null}
+>
+  {/* Your app components */}
+</TonConnectUIProvider>
+```
+
+The `appName` must match one of the wallet `appName` values defined in your `walletsListConfiguration`. For example, the `appName` for **Tonkeeper** is `"tonkeeper"`.
+
+## Official TonConnect Resources
+- [Original TonConnect UI](https://github.com/ton-connect/sdk/tree/main/packages/ui)
+- [Protocol Documentation](https://docs.ton.org/develop/dapps/ton-connect/overview)
+
+If you use React for your dapp, take a look at [TonConnect UI React kit](https://github.com/tonkeeper/tonconnect-sdk/tree/main/packages/ui-react).
+
+If you want to use TonConnect on the server side, you should use the [TonConnect SDK](https://github.com/tonkeeper/tonconnect-sdk/sdk/tree/main/packages/sdk).
 
 You can find more details and the protocol specification in the [docs](https://docs.ton.org/develop/dapps/ton-connect/overview).
 
 ---
 
-[Latest API documentation](https://ton-connect.github.io/sdk/modules/_tonconnect_ui.html)
+[Latest API documentation](https://tonkeeper.github.io/tonconnect-sdk/modules/_tonconnect_ui.html)
+[Demo dApp](https://github.com/tonkeeper/demo-dapp-with-wallet)
 
 # Getting started
 
-## Installation with cdn
-Add the script to your HTML file:
-```html
-<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+## Installation
+
+```bash
+npm i @tonkeeper/ton-connect-ui
 ```
-
-ℹ️ If you don't want auto-update the library, pass concrete version instead of `latest`, e.g.
-```html
-<script src="https://unpkg.com/@tonconnect/ui@0.0.9/dist/tonconnect-ui.min.js"></script>
-```
-
-You can find `TonConnectUI` in global variable `TON_CONNECT_UI`, e.g.
-```html
-<script>
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: 'https://<YOUR_APP_URL>/tonconnect-manifest.json',
-        buttonRootId: '<YOUR_CONNECT_BUTTON_ANCHOR_ID>'
-    });
-</script>
-```
-
-
-## Installation with npm
-`npm i @tonconnect/ui`
 
 # Usage
 
@@ -53,9 +77,9 @@ const tonConnectUI = new TonConnectUI({
 
 See all available options:
 
-[TonConnectUiOptionsWithManifest](https://ton-connect.github.io/sdk/interfaces/_tonconnect_ui.TonConnectUiOptionsWithManifest.html)
+[TonConnectUiOptionsWithManifest](https://tonkeeper.github.io/tonconnect-sdk/interfaces/_tonconnect_ui.TonConnectUiOptionsWithManifest.html)
 
-[TonConnectUiOptionsWithConnector](https://ton-connect.github.io/sdk/interfaces/_tonconnect_ui.TonConnectUiOptionsWithConnector.html)
+[TonConnectUiOptionsWithConnector](https://tonkeeper.github.io/tonconnect-sdk/interfaces/_tonconnect_ui.TonConnectUiOptionsWithConnector.html)
 
 ## Change options if needed 
 ```ts
@@ -75,7 +99,7 @@ DON'T do this:
 /* WRONG, WILL NOT WORK */ tonConnectUI.uiOptions.language = 'ru'; 
 ```
 
-[See all available options](https://ton-connect.github.io/sdk/interfaces/_tonconnect_ui.TonConnectUiOptions.html)
+[See all available options](https://tonkeeper.github.io/tonconnect-sdk/interfaces/_tonconnect_ui.TonConnectUiOptions.html)
 
 ## Fetch wallets list
 ```ts
@@ -453,7 +477,7 @@ However, the app developer can make changes to this interface to keep it consist
 ### Customise UI using tonconnectUI.uiOptions
 All such updates are reactive -- change `tonconnectUI.uiOptions` and changes will be applied immediately.  
 
-[See all available options](https://ton-connect.github.io/sdk/interfaces/_tonconnect_ui.UIPreferences.html)
+[See all available options](https://tonkeeper.github.io/tonconnect-sdk/interfaces/_tonconnect_ui.UIPreferences.html)
 
 #### Change border radius
 There are three border-radius modes: `'m'`, `'s'` and `'none'`. Default is `'m'`. You can change it via tonconnectUI.uiOptions, or set on tonConnectUI creating:
@@ -585,7 +609,7 @@ const tonConnectUI = new TonConnectUI({
 });
 ```
 
-[See all available options](https://ton-connect.github.io/sdk/interfaces/_tonconnect_ui.PartialColorsSet.html)
+[See all available options](https://tonkeeper.github.io/tonconnect-sdk/interfaces/_tonconnect_ui.PartialColorsSet.html)
 
 #### Combine options
 It is possible to change all required options at the same time:

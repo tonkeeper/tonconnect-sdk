@@ -1,29 +1,40 @@
-# TON Connect UI React
+# TON Connect UI React by Tonkeeper
 
-TonConnect UI React is a React UI kit for TonConnect SDK. Use it to connect your app to TON wallets via TonConnect protocol in React apps.
+> This is a Tonkeeper-maintained fork of the official [TonConnect UI React](https://github.com/ton-connect/sdk/tree/main/packages/ui-react) with additional features and improvements. While maintaining compatibility with the core TonConnect protocol, this fork includes Tonkeeper-specific enhancements for better integration with Tonkeeper wallet and extended functionality.
 
-If you don't use React for your app, take a look at [TonConnect UI](https://github.com/ton-connect/sdk/tree/main/packages/ui).
+## Key Differences from Official TonConnect UI React
 
-If you want to use TonConnect on the server side, you should use the [TonConnect SDK](https://github.com/ton-connect/sdk/tree/main/packages/sdk).
+- Ability to set primary wallet
+- Tonkeeper is installed by default
+
+## Installation
+
+```bash
+npm i @tonkeeper/tonconnect-ui-react
+```
+
+## Official TonConnect Resources
+- [Original TonConnect UI React](https://github.com/ton-connect/sdk/tree/main/packages/ui-react)
+- [Protocol Documentation](https://docs.ton.org/develop/dapps/ton-connect/overview)
+
+If you don't use React for your dapp, take a look at [TonConnect UI](https://github.com/tonkeeper/tonconnect-sdk/tree/main/packages/ui).
+
+If you want to use TonConnect on the server side, you should use the [TonConnect SDK](https://github.com/tonkeeper/tonconnect-sdk/tree/main/packages/sdk).
 
 You can find more details and the protocol specification in the [docs](https://docs.ton.org/develop/dapps/ton-connect/overview).
 
 ---
 
+[Latest API documentation](https://tonkeeper.github.io/tonconnect-sdk/modules/_tonconnect_ui_react.html)
+[Demo dApp](https://github.com/tonkeeper/demo-dapp-with-wallet)
+
 # Getting started
-
-[Latest API documentation](https://ton-connect.github.io/sdk/modules/_tonconnect_ui-react.html)
-
-# Getting started
-
-## Installation with npm
-`npm i @tonconnect/ui-react`
 
 # Usage
 
 ## Add TonConnectUIProvider
 Add TonConnectUIProvider to the root of the app. You can specify UI options using props.
-[See all available options](https://ton-connect.github.io/sdk/types/_tonconnect_ui_react.TonConnectUIProviderProps.html)
+[See all available options](https://tonkeeper.github.io/tonconnect-sdk/types/_tonconnect_ui_react.TonConnectUIProviderProps.html)
 
 All TonConnect UI hooks calls and `<TonConnectButton />` component must be placed inside `<TonConnectUIProvider>`.
 
@@ -87,8 +98,8 @@ Use it to get user's current ton wallet. If wallet is not connected hook will re
 
 See all wallet's properties
 
-[Wallet interface](https://ton-connect.github.io/sdk/interfaces/_tonconnect_sdk.Wallet.html)
-[WalletInfo interface](https://ton-connect.github.io/sdk/types/_tonconnect_sdk.WalletInfo.html)
+[Wallet interface](https://tonkeeper.github.io/tonconnect-sdk/interfaces/_tonconnect_sdk.Wallet.html)
+[WalletInfo interface](https://tonkeeper.github.io/tonconnect-sdk/types/_tonconnect_sdk.WalletInfo.html)
 
 ```tsx
 import { useTonWallet } from '@tonconnect/ui-react';
