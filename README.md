@@ -1,4 +1,6 @@
-# 🚀 TON Connect
+# 🚀 TON Connect by Tonkeeper
+
+> This is a Tonkeeper-maintained fork of the official [TonConnect](https://github.com/ton-connect/sdk) with additional features and improvements. While maintaining compatibility with the core TonConnect protocol.
 
 Welcome to the implementation of the TonConnect protocol! Before diving in, here's where to start:
 

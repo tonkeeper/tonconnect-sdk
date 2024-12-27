@@ -1,6 +1,6 @@
 # TON Connect UI by Tonkeeper
 
-> This is a Tonkeeper-maintained fork of the official [TonConnect UI](https://github.com/ton-connect/sdk/tree/main/packages/ui) with additional features and improvements. While maintaining compatibility with the core TonConnect protocol, this fork includes Tonkeeper-specific enhancements for better integration with Tonkeeper wallet and extended functionality.
+> This is a Tonkeeper-maintained fork of the official [TonConnect UI](https://github.com/ton-connect/sdk/tree/main/packages/ui) with additional features and improvements. While maintaining compatibility with the core TonConnect protocol.
 
 ## Installation
 
