@@ -2,4 +2,6 @@ export type Feature = SendTransactionFeatureDeprecated | SendTransactionFeature 
 
 export type SendTransactionFeatureDeprecated = 'SendTransaction';
 export type SendTransactionFeature = { name: 'SendTransaction'; maxMessages: number };
-export type SignDataFeature = { name: 'SignData' };
+
+type SignDataTypes = 'text' | 'binary' | 'cell';
+export type SignDataFeature = { name: 'SignData'; types: SignDataTypes[] };

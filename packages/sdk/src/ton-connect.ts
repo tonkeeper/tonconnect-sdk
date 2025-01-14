@@ -39,12 +39,13 @@ import { ITonConnect } from 'src/ton-connect.interface';
 import { getDocument, getWebPageManifest } from 'src/utils/web-api';
 import { WalletsListManager } from 'src/wallets-list-manager';
 import { WithoutIdDistributive } from 'src/utils/types';
-import { checkSendTransactionSupport } from 'src/utils/feature-support';
+import { checkSendTransactionSupport, checkSignDataSupport } from 'src/utils/feature-support';
 import { callForSuccess } from 'src/utils/call-for-success';
 import { logDebug, logError } from 'src/utils/log';
 import { createAbortController } from 'src/utils/create-abort-controller';
 import { TonConnectTracker } from 'src/tracker/ton-connect-tracker';
 import { tonConnectSdkVersion } from 'src/constants/version';
+import { SignDataRequest } from './models/methods/sign-data/sign-data-request';
 
 export class TonConnect implements ITonConnect {
     private static readonly walletsList = new WalletsListManager();
@@ -451,6 +452,14 @@ export class TonConnect implements ITonConnect {
         );
         this.tracker.trackTransactionSigned(this.wallet, transaction, result);
         return result;
+    }
+
+    public async signData(data: SignDataRequest): Promise<SignDataRequest> {
+        this.checkConnection();
+        checkSignDataSupport(this.wallet!.device.features, { requiredTypes: [data.type] });
+
+        // const response = await this.provider!.sendRequest(data);
+        return {} as SignDataRequest;
     }
 
     /**
