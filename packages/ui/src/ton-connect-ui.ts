@@ -540,7 +540,7 @@ export class TonConnectUI {
         data: SignDataPayload
         // options?: ActionConfiguration
     ): Promise<SignDataResponse> {
-        // this.tracker.trackTransactionSentForSignature(this.wallet, tx);
+        this.tracker.trackDataSentForSignature(this.wallet, data);
 
         // if (!this.connected) {
         //     this.tracker.trackTransactionSigningFailed(this.wallet, tx, 'Wallet was not connected');
