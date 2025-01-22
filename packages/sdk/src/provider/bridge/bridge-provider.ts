@@ -253,6 +253,8 @@ export class BridgeProvider implements HTTPProvider {
             options.attempts = optionsOrOnRequestSent?.attempts;
         }
 
+        console.log('MOIS sendRequest');
+
         return new Promise(async (resolve, reject) => {
             if (!this.gateway || !this.session || !('walletPublicKey' in this.session)) {
                 throw new TonConnectError('Trying to send bridge request without session');
@@ -268,6 +270,7 @@ export class BridgeProvider implements HTTPProvider {
                 hexToByteArray(this.session.walletPublicKey)
             );
 
+            console.log('MOIS gateway.send');
             try {
                 await this.gateway.send(
                     encodedRequest,

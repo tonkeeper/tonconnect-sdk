@@ -1,2 +1,1 @@
-export { SignDataRequest } from './sign-data-request';
-export { SignDataResponse } from './send-data-response';
+export { SignDataResponse } from './sign-data-response';

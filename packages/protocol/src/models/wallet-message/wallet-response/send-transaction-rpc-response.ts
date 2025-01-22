@@ -1,13 +1,13 @@
-import {
-    WalletResponseTemplateError,
-    WalletResponseTemplateSuccess
-} from './wallet-response-template';
+import { WalletResponseTemplateError } from './wallet-response-template';
 
 export type SendTransactionRpcResponse =
     | SendTransactionRpcResponseSuccess
     | SendTransactionRpcResponseError;
 
-export interface SendTransactionRpcResponseSuccess extends WalletResponseTemplateSuccess {}
+export interface SendTransactionRpcResponseSuccess {
+    result: string;
+    id: string;
+}
 
 export interface SendTransactionRpcResponseError extends WalletResponseTemplateError {
     error: { code: SEND_TRANSACTION_ERROR_CODES; message: string; data?: unknown };

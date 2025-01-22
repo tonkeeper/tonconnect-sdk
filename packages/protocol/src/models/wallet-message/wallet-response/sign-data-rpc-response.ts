@@ -1,8 +1,8 @@
-import { SignDataRequestPayload } from 'src/models/app-message/request/sign-data-rpc-request'; // TODO: Check if this import is correct
+import { SignDataPayload } from '../../sign-data-payload';
+
 import { WalletResponseTemplateError } from './wallet-response-template';
 
 export type SignDataRpcResponse = SignDataRpcResponseSuccess | SignDataRpcResponseError;
-// export type SignDataRpcResponse = SignDataResponseSuccess | SignDataResponseError;
 
 export interface SignDataRpcResponseSuccess {
     result: {
@@ -10,7 +10,7 @@ export interface SignDataRpcResponseSuccess {
         address: string; // wallet address
         timestamp: string; // UNIX timestamp in seconds (UTC) at the moment on creating the signature.
         domain: string; // app domain name (as url part, without encoding)
-        payload: SignDataRequestPayload; // payload that was signed
+        payload: SignDataPayload; // payload that was signed
     };
     id: string;
 }
