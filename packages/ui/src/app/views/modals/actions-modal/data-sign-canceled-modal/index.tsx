@@ -2,15 +2,14 @@ import { Component } from 'solid-js';
 import { ActionModal } from 'src/app/views/modals/actions-modal/action-modal';
 import { ErrorIcon } from 'src/app/components';
 
-interface TransactionCanceledModalProps {
+interface DataSignCanceledModalProps {
     onClose: () => void;
 }
 
-export const TransactionCanceledModal: Component<TransactionCanceledModalProps> = props => {
+export const DataSignCanceledModal: Component<DataSignCanceledModalProps> = props => {
     return (
         <ActionModal
-            headerTranslationKey="actionModal.transactionCanceled.header"
-            textTranslationKey="actionModal.transactionCanceled.text"
+            headerTranslationKey="actionModal.dataSignCanceled.header"
             icon={<ErrorIcon size="m" />}
             onClose={() => props.onClose()}
             data-tc-data-sign-canceled-modal="true"

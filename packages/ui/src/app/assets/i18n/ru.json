@@ -90,6 +90,10 @@
       "header": "Подтвердите действие в {{ name }}",
       "text": "Это займет пару секунд."
     },
+    "signData": {
+      "header": "Подпишите данные в {{ name }}",
+      "text": "Это займет пару секунд."
+    },
     "transactionSent": "$notifications.transactionSent",
     "transactionCanceled": "$notifications.transactionCanceled"
   }

@@ -1,17 +1,22 @@
+import { SignDataPayload } from '../../sign-data-payload';
+
 import { WalletResponseTemplateError } from './wallet-response-template';
 
 export type SignDataRpcResponse = SignDataRpcResponseSuccess | SignDataRpcResponseError;
 
 export interface SignDataRpcResponseSuccess {
-    id: string;
     result: {
-        signature: string;
-        timestamp: string;
+        signature: string; // base64 encoded signature
+        address: string; // wallet address
+        timestamp: string; // UNIX timestamp in seconds (UTC) at the moment on creating the signature.
+        domain: string; // app domain name (as url part, without encoding)
+        payload: SignDataPayload; // payload that was signed
     };
+    id: string;
 }
 
 export interface SignDataRpcResponseError extends WalletResponseTemplateError {
-    error: { code: SIGN_DATA_ERROR_CODES; message: string; data?: unknown };
+    error: { code: SIGN_DATA_ERROR_CODES; message: string };
     id: string;
 }
 
