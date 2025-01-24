@@ -444,6 +444,8 @@ export class TonConnectUI {
             sent: false
         });
 
+        const abortController = new AbortController();
+
         const onRequestSent = (): void => {
             if (abortController.signal.aborted) {
                 return;
@@ -481,8 +483,6 @@ export class TonConnectUI {
                 }
             }
         };
-
-        const abortController = new AbortController();
 
         const unsubscribe = this.onTransactionModalStateChange(action => {
             if (action?.openModal) {
@@ -542,117 +542,111 @@ export class TonConnectUI {
     ): Promise<SignDataResponse> {
         this.tracker.trackDataSentForSignature(this.wallet, data);
 
-        // if (!this.connected) {
-        //     this.tracker.trackTransactionSigningFailed(this.wallet, tx, 'Wallet was not connected');
-        //     throw new TonConnectUIError('Connect wallet to send a transaction.');
-        // }
+        if (!this.connected) {
+            this.tracker.trackDataSigningFailed(this.wallet, data, 'Wallet was not connected');
+            throw new TonConnectUIError('Connect wallet to send a transaction.');
+        }
 
-        // if (isInTMA()) {
-        //     sendExpand();
-        // }
+        if (isInTMA()) {
+            sendExpand();
+        }
 
-        // const { notifications, modals, returnStrategy, twaReturnUrl } =
-        //     this.getModalsAndNotificationsConfiguration(options);
+        const { notifications, modals, returnStrategy, twaReturnUrl } =
+            this.getModalsAndNotificationsConfiguration();
 
-        // widgetController.setAction({
-        //     name: 'confirm-transaction',
-        //     showNotification: notifications.includes('before'),
-        //     openModal: modals.includes('before'),
-        //     sent: false
-        // });
-
-        // const onRequestSent = (): void => {
-        //     if (abortController.signal.aborted) {
-        //         return;
-        //     }
-
-        //     widgetController.setAction({
-        //         name: 'confirm-transaction',
-        //         showNotification: notifications.includes('before'),
-        //         openModal: modals.includes('before'),
-        //         sent: true
-        //     });
-
-        //     if (
-        //         this.walletInfo &&
-        //         'universalLink' in this.walletInfo &&
-        //         (this.walletInfo.openMethod === 'universal-link' ||
-        //             this.walletInfo.openMethod === 'custom-deeplink')
-        //     ) {
-        //         if (isTelegramUrl(this.walletInfo.universalLink)) {
-        //             redirectToTelegram(this.walletInfo.universalLink, {
-        //                 returnStrategy,
-        //                 twaReturnUrl: twaReturnUrl || appState.twaReturnUrl,
-        //                 forceRedirect: false
-        //             });
-        //         } else {
-        //             redirectToWallet(
-        //                 this.walletInfo.universalLink,
-        //                 this.walletInfo.deepLink,
-        //                 {
-        //                     returnStrategy,
-        //                     forceRedirect: false
-        //                 },
-        //                 () => {}
-        //             );
-        //         }
-        //     }
-        // };
-
-        // const abortController = new AbortController();
-
-        // const unsubscribe = this.onTransactionModalStateChange(action => {
-        //     if (action?.openModal) {
-        //         return;
-        //     }
-
-        //     unsubscribe();
-        //     if (!action) {
-        //         abortController.abort();
-        //     }
-        // });
-
-        const result = await this.waitForSignData({
-            data,
-            signal: new AbortController().signal
+        widgetController.setAction({
+            name: 'confirm-sign-data',
+            showNotification: notifications.includes('before'),
+            openModal: modals.includes('before'),
+            signed: false
         });
 
-        return result;
+        const abortController = new AbortController();
 
-        // try {
-        //     const result = await this.waitForSendTransaction(
-        //         {
-        //             transaction: tx,
-        //             signal: abortController.signal
-        //         },
-        //         onRequestSent
-        //     );
+        const onRequestSent = (): void => {
+            if (abortController.signal.aborted) {
+                return;
+            }
 
-        //     this.tracker.trackTransactionSigned(this.wallet, tx, result);
+            widgetController.setAction({
+                name: 'confirm-sign-data',
+                showNotification: notifications.includes('before'),
+                openModal: modals.includes('before'),
+                signed: true
+            });
 
-        //     widgetController.setAction({
-        //         name: 'transaction-sent',
-        //         showNotification: notifications.includes('success'),
-        //         openModal: modals.includes('success')
-        //     });
+            // TODO: move to private method
+            if (
+                this.walletInfo &&
+                'universalLink' in this.walletInfo &&
+                (this.walletInfo.openMethod === 'universal-link' ||
+                    this.walletInfo.openMethod === 'custom-deeplink')
+            ) {
+                if (isTelegramUrl(this.walletInfo.universalLink)) {
+                    redirectToTelegram(this.walletInfo.universalLink, {
+                        returnStrategy,
+                        twaReturnUrl: twaReturnUrl || appState.twaReturnUrl,
+                        forceRedirect: false
+                    });
+                } else {
+                    redirectToWallet(
+                        this.walletInfo.universalLink,
+                        this.walletInfo.deepLink,
+                        {
+                            returnStrategy,
+                            forceRedirect: false
+                        },
+                        () => {}
+                    );
+                }
+            }
+        };
 
-        //     return result;
-        // } catch (e) {
-        //     widgetController.setAction({
-        //         name: 'transaction-canceled',
-        //         showNotification: notifications.includes('error'),
-        //         openModal: modals.includes('error')
-        //     });
+        const unsubscribe = this.onTransactionModalStateChange(action => {
+            if (action?.openModal) {
+                return;
+            }
 
-        //     if (e instanceof TonConnectError) {
-        //         throw e;
-        //     } else {
-        //         console.error(e);
-        //         throw new TonConnectUIError('Unhandled error:' + e);
-        //     }
-        // } finally {
-        //     unsubscribe();
-        // }
+            unsubscribe();
+            if (!action) {
+                abortController.abort();
+            }
+        });
+
+        try {
+            const result = await this.waitForSignData(
+                {
+                    data,
+                    signal: new AbortController().signal
+                },
+                onRequestSent
+            );
+
+            this.tracker.trackDataSigned(this.wallet, data, result);
+
+            widgetController.setAction({
+                name: 'data-signed',
+                showNotification: notifications.includes('success'),
+                openModal: modals.includes('success')
+            });
+
+            return result;
+        } catch (e) {
+            widgetController.setAction({
+                name: 'data-sign-canceled',
+                showNotification: notifications.includes('error'),
+                openModal: modals.includes('error')
+            });
+
+            if (e instanceof TonConnectError) {
+                throw e;
+            } else {
+                console.error(e);
+                throw new TonConnectUIError('Unhandled error:' + e);
+            }
+        } finally {
+            unsubscribe();
+        }
     }
 
     /**
