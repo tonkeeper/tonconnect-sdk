@@ -416,13 +416,11 @@ export class TonConnect implements ITonConnect {
         }
 
         this.checkConnection();
-        checkSendTransactionSupport(this.wallet!.device.features, {
-            requiredMessagesNumber: transaction.messages.length
-        });
+        checkSendTransactionSupport(this.wallet!.device.features, { transaction });
 
         this.tracker.trackTransactionSentForSignature(this.wallet, transaction);
 
-        const { validUntil, ...tx } = transaction;
+        const { validUntil, messages, ...tx } = transaction;
         const from = transaction.from || this.account!.address;
         const network = transaction.network || this.account!.chain;
 
@@ -430,6 +428,10 @@ export class TonConnect implements ITonConnect {
             sendTransactionParser.convertToRpcRequest({
                 ...tx,
                 valid_until: validUntil,
+                messages: messages.map(({ extraCurrency, ...msg }) => ({
+                    ...msg,
+                    extra_currency: extraCurrency
+                })),
                 from,
                 network
             }),
@@ -556,6 +558,15 @@ export class TonConnect implements ITonConnect {
 
         if (!tonAccountItem) {
             throw new TonConnectError('ton_addr connection item was not found');
+        }
+
+        const hasRequiredFeatures = checkRequiredWalletFeatures(
+            connectEvent.device.features,
+            this.walletsRequiredFeatures ?? []
+        );
+
+        if (!hasRequiredFeatures) {
+            throw new TonConnectError('Wallet does not support required features.');
         }
 
         const wallet: Wallet = {
