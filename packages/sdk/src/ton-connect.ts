@@ -3,6 +3,7 @@ import {
     ConnectEventSuccess,
     ConnectItem,
     ConnectRequest,
+    Feature,
     SendTransactionRpcResponseSuccess,
     TonAddressItemReply,
     TonProofItemReply,
@@ -16,6 +17,7 @@ import { WalletAlreadyConnectedError } from 'src/errors/wallet/wallet-already-co
 import { WalletNotConnectedError } from 'src/errors/wallet/wallet-not-connected.error';
 import {
     Account,
+    RequireFeature,
     Wallet,
     WalletConnectionSource,
     WalletConnectionSourceHTTP,
@@ -39,7 +41,10 @@ import { ITonConnect } from 'src/ton-connect.interface';
 import { getDocument, getWebPageManifest } from 'src/utils/web-api';
 import { WalletsListManager } from 'src/wallets-list-manager';
 import { WithoutIdDistributive } from 'src/utils/types';
-import { checkSendTransactionSupport } from 'src/utils/feature-support';
+import {
+    checkSendTransactionSupport,
+    checkRequiredWalletFeatures
+} from 'src/utils/feature-support';
 import { callForSuccess } from 'src/utils/call-for-success';
 import { logDebug, logError } from 'src/utils/log';
 import { createAbortController } from 'src/utils/create-abort-controller';
@@ -90,6 +95,11 @@ export class TonConnect implements ITonConnect {
 
     private statusChangeErrorSubscriptions: ((err: TonConnectError) => void)[] = [];
 
+    private readonly walletsRequiredFeatures:
+        | RequireFeature[]
+        | ((features: Feature[]) => boolean)
+        | undefined;
+
     private abortController?: AbortController;
 
     /**
@@ -124,9 +134,12 @@ export class TonConnect implements ITonConnect {
             storage: options?.storage || new DefaultStorage()
         };
 
+        this.walletsRequiredFeatures = options?.walletsRequiredFeatures;
+
         this.walletsList = new WalletsListManager({
             walletsListSource: options?.walletsListSource,
-            cacheTTLMs: options?.walletsListCacheTTLMs
+            cacheTTLMs: options?.walletsListCacheTTLMs,
+            walletsRequiredFeatures: options?.walletsRequiredFeatures
         });
 
         this.tracker = new TonConnectTracker({
@@ -416,13 +429,11 @@ export class TonConnect implements ITonConnect {
         }
 
         this.checkConnection();
-        checkSendTransactionSupport(this.wallet!.device.features, {
-            requiredMessagesNumber: transaction.messages.length
-        });
+        checkSendTransactionSupport(this.wallet!.device.features, { transaction });
 
         this.tracker.trackTransactionSentForSignature(this.wallet, transaction);
 
-        const { validUntil, ...tx } = transaction;
+        const { validUntil, messages, ...tx } = transaction;
         const from = transaction.from || this.account!.address;
         const network = transaction.network || this.account!.chain;
 
@@ -430,6 +441,10 @@ export class TonConnect implements ITonConnect {
             sendTransactionParser.convertToRpcRequest({
                 ...tx,
                 valid_until: validUntil,
+                messages: messages.map(({ extraCurrency, ...msg }) => ({
+                    ...msg,
+                    extra_currency: extraCurrency
+                })),
                 from,
                 network
             }),
@@ -556,6 +571,15 @@ export class TonConnect implements ITonConnect {
 
         if (!tonAccountItem) {
             throw new TonConnectError('ton_addr connection item was not found');
+        }
+
+        const hasRequiredFeatures = checkRequiredWalletFeatures(
+            connectEvent.device.features,
+            this.walletsRequiredFeatures ?? []
+        );
+
+        if (!hasRequiredFeatures) {
+            throw new TonConnectError('Wallet does not support required features.');
         }
 
         const wallet: Wallet = {

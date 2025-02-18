@@ -11,6 +11,8 @@ import { SendTransactionRequest, SendTransactionResponse } from 'src/models/meth
 import { RpcParser } from 'src/parsers/rpc-parser';
 import { WithoutId } from 'src/utils/types';
 
+type Message = SendTransactionRequest['messages'][number];
+
 const sendTransactionErrors: Partial<Record<CONNECT_EVENT_ERROR_CODES, typeof TonConnectError>> = {
     [SEND_TRANSACTION_ERROR_CODES.UNKNOWN_ERROR]: UnknownError,
     [SEND_TRANSACTION_ERROR_CODES.USER_REJECTS_ERROR]: UserRejectsError,
@@ -20,7 +22,10 @@ const sendTransactionErrors: Partial<Record<CONNECT_EVENT_ERROR_CODES, typeof To
 
 class SendTransactionParser extends RpcParser<'sendTransaction'> {
     convertToRpcRequest(
-        request: Omit<SendTransactionRequest, 'validUntil'> & { valid_until: number }
+        request: Omit<SendTransactionRequest, 'validUntil' | 'messages'> & {
+            valid_until: number;
+            messages: Array<Message & { extra_currency?: Message['extraCurrency'] }>;
+        }
     ): WithoutId<SendTransactionRpcRequest> {
         return {
             method: 'sendTransaction',
