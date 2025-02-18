@@ -1,3 +1,5 @@
+import { Feature } from "@tonconnect/protocol";
+
 /**
  * Common information for injectable and http-compatible wallets.
  */
@@ -26,6 +28,8 @@ export interface WalletInfoBase {
      * Info or landing page of your wallet. May be useful for TON newcomers.
      */
     aboutUrl: string;
+
+    features?: Feature[];
 
     /**
      * OS and browsers where the wallet could be installed
@@ -119,6 +123,7 @@ export interface WalletInfoDTO {
     tondns?: string;
     about_url: string;
     universal_url?: string;
+    features?: Feature[];
     platforms: (
         | 'ios'
         | 'android'

@@ -1,6 +1,8 @@
 import type {
     Account,
     ConnectAdditionalRequest,
+    Feature,
+    RequireFeature,
     WalletInfoCurrentlyEmbedded
 } from '@tonconnect/sdk';
 import {
@@ -67,6 +69,8 @@ export class TonConnectUI {
     private actionsConfiguration?: ActionConfiguration;
 
     private readonly walletsList: Promise<WalletInfo[]>;
+
+    public readonly walletsRequiredFeatures?: RequireFeature[] | ((features: Feature[]) => boolean);
 
     public readonly primaryWalletAppName?: string;
 
@@ -203,7 +207,8 @@ export class TonConnectUI {
         } else if (options && 'manifestUrl' in options && options.manifestUrl) {
             this.connector = new TonConnect({
                 manifestUrl: options.manifestUrl,
-                eventDispatcher: options?.eventDispatcher
+                eventDispatcher: options.eventDispatcher,
+                walletsRequiredFeatures: options.walletsRequiredFeatures
             });
         } else {
             throw new TonConnectUIError(
@@ -240,9 +245,10 @@ export class TonConnectUI {
             connector: this.connector
         });
 
-        this.walletsList = this.getWallets();
-
+        this.walletsRequiredFeatures = options.walletsRequiredFeatures;
         this.primaryWalletAppName = options.primaryWalletAppName;
+
+        this.walletsList = this.getWallets();
 
         this.walletsList.then(list => preloadImages(uniq(list.map(item => item.imageUrl))));
 
@@ -432,7 +438,7 @@ export class TonConnectUI {
             sendExpand();
         }
 
-        const { notifications, modals, returnStrategy, twaReturnUrl, skipRedirectToWallet } =
+        const { notifications, modals, returnStrategy, twaReturnUrl } =
             this.getModalsAndNotificationsConfiguration(options);
 
         widgetController.setAction({
