@@ -1,4 +1,4 @@
-import { Feature, SendTransactionFeature } from '@tonconnect/protocol';
+import { Feature, SendTransactionFeature, SignDataFeature } from '@tonconnect/protocol';
 import { logWarning } from 'src/utils/log';
 import { WalletNotSupportFeatureError } from 'src/errors/wallet/wallet-not-support-feature.error';
 import { RequireFeature } from 'src/models';
@@ -38,6 +38,30 @@ export function checkSendTransactionSupport(
     );
 }
 
+export function checkSignDataSupport(
+    features: Feature[],
+    options: { requiredTypes: SignDataFeature['types'] }
+): never | void {
+    return;
+    const signDataFeature = features.find(
+        feature => feature && typeof feature === 'object' && feature.name === 'SignData'
+    ) as SignDataFeature;
+
+    if (!signDataFeature) {
+        throw new WalletNotSupportFeatureError("Wallet doesn't support SignData feature.");
+    }
+
+    const unsupportedTypes = options.requiredTypes.filter(
+        requiredType => !signDataFeature.types.includes(requiredType)
+    );
+
+    if (unsupportedTypes.length) {
+        throw new WalletNotSupportFeatureError(
+            `Wallet doesn't support required SignData types: ${unsupportedTypes.join(', ')}.`
+        );
+    }
+}
+
 export function checkRequiredWalletFeatures(
     features: Feature[],
     walletsRequiredFeatures: RequireFeature[] | ((features: Feature[]) => boolean)
@@ -47,7 +71,9 @@ export function checkRequiredWalletFeatures(
     }
 
     const res = walletsRequiredFeatures.every(requiredFeature => {
-        const feature = features.find(f => typeof f === 'object' && f.name === requiredFeature.name);
+        const feature = features.find(
+            f => typeof f === 'object' && f.name === requiredFeature.name
+        );
 
         if (!feature) {
             return false;

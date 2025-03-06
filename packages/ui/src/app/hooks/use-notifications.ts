@@ -45,10 +45,13 @@ export function useOpenedNotifications(
             if (latestAction() === action) {
                 return;
             }
-            if (
+
+            const isConfirmTransactionAction =
                 latestAction()?.name === 'confirm-transaction' &&
-                action.name === 'confirm-transaction'
-            ) {
+                action.name === 'confirm-transaction';
+            const isConfirmSignDataAction = action.name === 'confirm-sign-data'; // TODO (chek): latestAction()?.name === 'confirm-sign-data' &&
+
+            if (isConfirmTransactionAction || isConfirmSignDataAction) {
                 return;
             }
 
@@ -56,7 +59,9 @@ export function useOpenedNotifications(
 
             // cleanup all not confirmed transactions
             setOpenedNotifications(openedNotifications =>
-                openedNotifications.filter(n => n.action !== 'confirm-transaction')
+                openedNotifications.filter(
+                    n => n.action !== 'confirm-transaction' && n.action !== 'confirm-sign-data'
+                )
             );
 
             // create notification

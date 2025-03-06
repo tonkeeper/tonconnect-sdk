@@ -6,4 +6,6 @@ export type SendTransactionFeature = {
     maxMessages: number;
     extraCurrencySupported?: boolean;
 };
-export type SignDataFeature = { name: 'SignData' };
+
+export type SignDataTypes = 'text' | 'binary' | 'cell';
+export type SignDataFeature = { name: 'SignData'; types: SignDataTypes[] };

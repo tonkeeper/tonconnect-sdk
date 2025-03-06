@@ -15,6 +15,9 @@ import {
 } from './types';
 import {
     BrowserEventDispatcher,
+    createDataSentForSignatureEvent,
+    createDataSignedEvent,
+    createDataSigningFailedEvent,
     createVersionInfo,
     EventDispatcher,
     ResponseVersionEvent,
@@ -284,6 +287,45 @@ export class TonConnectUITracker {
     ): void {
         try {
             const event = createTransactionSigningFailedEvent(this.version, ...args);
+            this.dispatchUserActionEvent(event);
+        } catch (e) {}
+    }
+
+    /**
+     * Track transaction init event.
+     * @param args
+     */
+    public trackDataSentForSignature(
+        ...args: WithoutVersion<Parameters<typeof createDataSentForSignatureEvent>>
+    ): void {
+        try {
+            const event = createDataSentForSignatureEvent(this.version, ...args);
+            this.dispatchUserActionEvent(event);
+        } catch (e) {}
+    }
+
+    /**
+     * Track transaction signed event.
+     * @param args
+     */
+    public trackDataSigned(
+        ...args: WithoutVersion<Parameters<typeof createDataSignedEvent>>
+    ): void {
+        try {
+            const event = createDataSignedEvent(this.version, ...args);
+            this.dispatchUserActionEvent(event);
+        } catch (e) {}
+    }
+
+    /**
+     * Track transaction error event.
+     * @param args
+     */
+    public trackDataSigningFailed(
+        ...args: WithoutVersion<Parameters<typeof createDataSigningFailedEvent>>
+    ): void {
+        try {
+            const event = createDataSigningFailedEvent(this.version, ...args);
             this.dispatchUserActionEvent(event);
         } catch (e) {}
     }
