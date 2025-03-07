@@ -8,7 +8,7 @@ export interface SignDataRpcResponseSuccess {
     result: {
         signature: string;
         address: string;
-        timestamp: string;
+        timestamp: number;
         domain: string;
         payload: SignDataPayload;
     };
