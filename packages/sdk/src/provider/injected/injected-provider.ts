@@ -3,6 +3,7 @@ import {
     AppRequest,
     ConnectEventError,
     ConnectRequest,
+    Feature,
     RpcMethod,
     WalletEvent,
     WalletResponse
@@ -47,7 +48,9 @@ export class InjectedProvider<T extends string = string> implements InternalProv
         return false;
     }
 
-    public static getCurrentlyInjectedWallets(): WalletInfoCurrentlyInjected[] {
+    public static getCurrentlyInjectedWallets(
+        checkRequiredFeatures: (features: Feature[] | undefined) => boolean
+    ): WalletInfoCurrentlyInjected[] {
         if (!this.window) {
             return [];
         }
@@ -66,7 +69,11 @@ export class InjectedProvider<T extends string = string> implements InternalProv
             jsBridgeKey,
             injected: true,
             embedded: wallet.tonconnect.isWalletBrowser,
-            platforms: wallet.tonconnect.walletInfo.platforms
+            platforms: wallet.tonconnect.walletInfo.platforms,
+            features: wallet.tonconnect.walletInfo.features,
+            isSupportRequiredFeatures: checkRequiredFeatures(
+                wallet.tonconnect.walletInfo.features
+            ),
         }));
     }
 
