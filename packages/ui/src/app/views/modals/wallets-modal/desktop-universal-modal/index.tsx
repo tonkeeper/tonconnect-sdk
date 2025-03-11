@@ -37,6 +37,21 @@ export const DesktopUniversalModal: Component<DesktopUniversalModalProps> = prop
     setLastSelectedWalletInfo({ openMethod: 'qrcode' });
     const request = createMemo(() => connector.connect(walletsBridges(), props.additionalRequest));
 
+    const supportedWallets = createMemo(
+        () => props.walletsList.filter(wallet => wallet.isSupportRequiredFeatures),
+        null
+    );
+
+    const visibleWallets = createMemo(() => supportedWallets().slice(0, 3), null);
+
+    const fourWalletsItem = createMemo(
+        () =>
+            props.walletsList
+                .filter(wallet => !visibleWallets().find(w => w.appName === wallet.appName))
+                .slice(0, 4),
+        null
+    );
+
     return (
         <DesktopUniversalModalStyled
             onClick={() => setPopupOpened(false)}
@@ -57,7 +72,7 @@ export const DesktopUniversalModal: Component<DesktopUniversalModalProps> = prop
                 Available wallets
             </H2AvailableWalletsStyled>
             <WalletsContainerStyled>
-                <For each={props.walletsList.slice(0, 3)}>
+                <For each={visibleWallets()}>
                     {wallet => (
                         <li>
                             <WalletLabeledItem
@@ -70,7 +85,7 @@ export const DesktopUniversalModal: Component<DesktopUniversalModalProps> = prop
                 <FourWalletsItem
                     labelLine1="View all"
                     labelLine2="wallets"
-                    images={props.walletsList.slice(3, 7).map(i => i.imageUrl)}
+                    images={fourWalletsItem().map(i => i.imageUrl)}
                     onClick={() => props.onSelectAllWallets()}
                 />
             </WalletsContainerStyled>

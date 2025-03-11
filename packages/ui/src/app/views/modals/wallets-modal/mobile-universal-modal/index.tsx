@@ -44,6 +44,13 @@ export const MobileUniversalModal: Component<MobileUniversalModalProps> = props 
         equals: bridgesIsEqual
     });
 
+    const atWalletSupportFeatures = createMemo(
+        () =>
+            props.walletsList.find(wallet => wallet.appName === AT_WALLET_APP_NAME)
+                ?.isSupportRequiredFeatures ?? false,
+        null
+    );
+
     const getUniversalLink = (): string => {
         if (!universalLink()) {
             setUniversalLink(connector.connect(walletsBridges(), props.additionalRequest));
@@ -126,6 +133,21 @@ export const MobileUniversalModal: Component<MobileUniversalModalProps> = props 
         });
     };
 
+    const supportedWallets = createMemo(
+        () => walletsList().filter(wallet => wallet.isSupportRequiredFeatures),
+        null
+    );
+
+    const visibleWallets = createMemo(() => supportedWallets().slice(0, 3), null);
+
+    const fourWalletsItem = createMemo(
+        () =>
+            walletsList()
+                .filter(wallet => !visibleWallets().find(w => w.appName === wallet.appName))
+                .slice(0, 4),
+        null
+    );
+
     return (
         <div data-tc-wallets-modal-universal-mobile="true">
             <Show when={showQR()}>
@@ -142,22 +164,24 @@ export const MobileUniversalModal: Component<MobileUniversalModalProps> = props 
                 <H1Styled translationKey="walletModal.mobileUniversalModal.connectYourWallet">
                     Connect your TON wallet
                 </H1Styled>
-                <H2Styled
-                    translationKey="walletModal.mobileUniversalModal.openWalletOnTelegramOrSelect"
-                    maxWidth={320}
-                >
-                    Use Wallet in Telegram or choose other application
-                </H2Styled>
-                <TelegramButtonStyled
-                    leftIcon={<AtWalletIcon />}
-                    rightIcon={<TGImageStyled src={IMG.TG} />}
-                    onClick={onSelectTelegram}
-                    scale="s"
-                >
-                    <Translation translationKey="walletModal.mobileUniversalModal.openWalletOnTelegram">
-                        Connect Wallet in Telegram
-                    </Translation>
-                </TelegramButtonStyled>
+                <Show when={atWalletSupportFeatures()}>
+                    <H2Styled
+                        translationKey="walletModal.mobileUniversalModal.openWalletOnTelegramOrSelect"
+                        maxWidth={320}
+                    >
+                        Use Wallet in Telegram or choose other application
+                    </H2Styled>
+                    <TelegramButtonStyled
+                        leftIcon={<AtWalletIcon />}
+                        rightIcon={<TGImageStyled src={IMG.TG} />}
+                        onClick={onSelectTelegram}
+                        scale="s"
+                    >
+                        <Translation translationKey="walletModal.mobileUniversalModal.openWalletOnTelegram">
+                            Connect Wallet in Telegram
+                        </Translation>
+                    </TelegramButtonStyled>
+                </Show>
                 <H2Styled
                     translationKey="walletModal.mobileUniversalModal.chooseOtherApplication"
                     maxWidth={342}
@@ -167,7 +191,7 @@ export const MobileUniversalModal: Component<MobileUniversalModalProps> = props 
                     Choose other application
                 </H2Styled>
                 <WalletUlContainer>
-                    <For each={shouldShowMoreButton() ? walletsList().slice(0, 3) : walletsList()}>
+                    <For each={shouldShowMoreButton() ? visibleWallets() : supportedWallets()}>
                         {wallet => (
                             <li>
                                 <WalletItem
@@ -183,9 +207,7 @@ export const MobileUniversalModal: Component<MobileUniversalModalProps> = props 
                             <FourWalletsItem
                                 labelLine1="View all"
                                 labelLine2="wallets"
-                                images={walletsList()
-                                    .slice(3, 7)
-                                    .map(i => i.imageUrl)}
+                                images={fourWalletsItem().map(i => i.imageUrl)}
                                 onClick={() => props.onSelectAllWallets()}
                             />
                         </li>
