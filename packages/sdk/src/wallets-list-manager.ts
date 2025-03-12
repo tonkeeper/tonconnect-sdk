@@ -108,9 +108,7 @@ export class WalletsListManager {
 
         let currentlyInjectedWallets: WalletInfoCurrentlyInjected[] = [];
         try {
-            currentlyInjectedWallets = InjectedProvider.getCurrentlyInjectedWallets(
-                this.checkRequiredFeatures
-            );
+            currentlyInjectedWallets = InjectedProvider.getCurrentlyInjectedWallets();
         } catch (e) {
             logError(e);
         }
@@ -130,8 +128,7 @@ export class WalletsListManager {
                 aboutUrl: walletConfigDTO.about_url,
                 tondns: walletConfigDTO.tondns,
                 platforms: walletConfigDTO.platforms,
-                features: walletConfigDTO.features,
-                isSupportRequiredFeatures: this.checkRequiredFeatures(walletConfigDTO.features)
+                features: walletConfigDTO.features
             };
 
             walletConfigDTO.bridge.forEach(bridge => {

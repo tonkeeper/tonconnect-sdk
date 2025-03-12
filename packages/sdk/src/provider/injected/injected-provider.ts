@@ -48,9 +48,7 @@ export class InjectedProvider<T extends string = string> implements InternalProv
         return false;
     }
 
-    public static getCurrentlyInjectedWallets(
-        checkRequiredFeatures: (features: Feature[] | undefined) => boolean
-    ): WalletInfoCurrentlyInjected[] {
+    public static getCurrentlyInjectedWallets(): WalletInfoCurrentlyInjected[] {
         if (!this.window) {
             return [];
         }
@@ -70,10 +68,7 @@ export class InjectedProvider<T extends string = string> implements InternalProv
             injected: true,
             embedded: wallet.tonconnect.isWalletBrowser,
             platforms: wallet.tonconnect.walletInfo.platforms,
-            features: wallet.tonconnect.walletInfo.features,
-            isSupportRequiredFeatures: checkRequiredFeatures(
-                wallet.tonconnect.walletInfo.features
-            ),
+            features: wallet.tonconnect.walletInfo.features
         }));
     }
 

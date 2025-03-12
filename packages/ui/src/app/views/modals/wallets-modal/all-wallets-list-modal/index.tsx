@@ -9,7 +9,6 @@ import {
     ErrorBoxStyled,
     WalletsNotSupportedNotifierText
 } from './style';
-import { WalletInfo } from '@tonconnect/sdk';
 import { isMobile } from 'src/app/hooks/isMobile';
 import { supportsMobile } from 'src/app/utils/wallets';
 import { ScrollContainer } from 'src/app/components/scroll-container';
@@ -17,21 +16,22 @@ import { ExclamationIcon } from 'src/app/components/icons/exclamation-icon';
 import { Transition } from 'solid-transition-group';
 import { animate } from 'src/app/utils/animate';
 import { ErrorIcon, Text } from 'src/app/components';
+import { UIWalletInfo } from 'src/app/models/ui-wallet-info';
 
 export interface DesktopSelectWalletModalProps {
-    walletsList: WalletInfo[];
+    walletsList: UIWalletInfo[];
 
     onBack: () => void;
 
-    onSelect: (walletInfo: WalletInfo) => void;
+    onSelect: (walletInfo: UIWalletInfo) => void;
 }
 
 export const AllWalletsListModal: Component<DesktopSelectWalletModalProps> = props => {
     const maxHeight = (): number | undefined => (isMobile() ? undefined : 510);
 
-    const [errorSupportOpened, setErrorSupportOpened] = createSignal<WalletInfo | null>(null);
+    const [errorSupportOpened, setErrorSupportOpened] = createSignal<UIWalletInfo | null>(null);
     let timeoutId: null | ReturnType<typeof setTimeout> = null;
-    const onErrorClick = (wallet: WalletInfo): void => {
+    const onErrorClick = (wallet: UIWalletInfo): void => {
         setErrorSupportOpened(wallet);
 
         if (timeoutId != null) {
@@ -41,7 +41,7 @@ export const AllWalletsListModal: Component<DesktopSelectWalletModalProps> = pro
         timeoutId = setTimeout(() => setErrorSupportOpened(null), 1500);
     };
 
-    const handleSelectWallet = (wallet: WalletInfo): void => {
+    const handleSelectWallet = (wallet: UIWalletInfo): void => {
         if (!wallet.isSupportRequiredFeatures) {
             onErrorClick(wallet);
             return;
@@ -49,13 +49,13 @@ export const AllWalletsListModal: Component<DesktopSelectWalletModalProps> = pro
         props.onSelect(wallet);
     };
 
-    const walletsList = (): WalletInfo[] =>
+    const walletsList = (): UIWalletInfo[] =>
         isMobile() ? props.walletsList.filter(supportsMobile) : props.walletsList;
 
-    const supportedWallets = (): WalletInfo[] =>
+    const supportedWallets = (): UIWalletInfo[] =>
         walletsList().filter(wallet => wallet.isSupportRequiredFeatures);
 
-    const unsupportedWallets = (): WalletInfo[] =>
+    const unsupportedWallets = (): UIWalletInfo[] =>
         walletsList().filter(wallet => !wallet.isSupportRequiredFeatures);
 
     return (

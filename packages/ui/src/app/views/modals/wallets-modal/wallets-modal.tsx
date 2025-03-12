@@ -4,8 +4,8 @@ import {
     WalletMissingRequiredFeaturesError,
     TonConnectError,
     Wallet,
-    WalletInfo,
-    WalletInfoRemote
+    WalletInfoRemote,
+    checkRequiredWalletFeatures
 } from '@tonconnect/sdk';
 import {
     Component,
@@ -30,7 +30,7 @@ import { isMobile, updateIsMobile } from 'src/app/hooks/isMobile';
 import { AllWalletsListModal } from 'src/app/views/modals/wallets-modal/all-wallets-list-modal';
 import { LoaderIcon } from 'src/app/components';
 import { LoadableReady } from 'src/models/loadable';
-import { PersonalizedWalletInfo } from 'src/app/models/personalized-wallet-info';
+import { UIWalletInfo } from 'src/app/models/ui-wallet-info';
 import { AT_WALLET_APP_NAME } from 'src/app/env/AT_WALLET_APP_NAME';
 import { DesktopConnectionModal } from 'src/app/views/modals/wallets-modal/desktop-connection-modal';
 import { InfoModal } from 'src/app/views/modals/wallets-modal/info-modal';
@@ -58,47 +58,67 @@ export const WalletsModal: Component = () => {
     const tonConnectUI = useContext(TonConnectUiContext);
     const [fetchedWalletsList] = createResource(() => tonConnectUI!.getWallets());
 
-    const [selectedWalletInfo, setSelectedWalletInfo] = createSignal<WalletInfo | null>(null);
+    const [selectedWalletInfo, setSelectedWalletInfo] = createSignal<UIWalletInfo | null>(null);
     const [selectedWalletError, setSelectedWalletError] = createSignal<
         'missing-features' | 'not-supported' | null
     >(null);
     const [selectedTab, setSelectedTab] = createSignal<'universal' | 'all-wallets'>('universal');
     const [infoTab, setInfoTab] = createSignal(false);
 
-    const walletsList = createMemo<PersonalizedWalletInfo[] | null>(() => {
+    const walletsList = createMemo<UIWalletInfo[] | null>(() => {
         if (fetchedWalletsList.state !== 'ready') {
             return null;
         }
 
-        let walletsList = applyWalletsListConfiguration(
-            fetchedWalletsList(),
+        const rawWallets = fetchedWalletsList();
+        const configuredWallets = applyWalletsListConfiguration(
+            rawWallets,
             appState.walletsListConfiguration
         );
 
-        const injectedWallets: WalletInfo[] = walletsList.filter(isWalletInfoCurrentlyInjected);
-        const notInjectedWallets = walletsList.filter(w => !isWalletInfoCurrentlyInjected(w));
-        walletsList = (injectedWallets || []).concat(notInjectedWallets);
+        const sortedWallets = [
+            ...configuredWallets.filter(isWalletInfoCurrentlyInjected),
+            ...configuredWallets.filter(w => !isWalletInfoCurrentlyInjected(w))
+        ];
 
-        const preferredWalletAppName = appState.preferredWalletAppName;
-        const preferredWallet = walletsList.find(item =>
-            eqWalletName(item, preferredWalletAppName)
-        );
-        const someWalletsWithSameName =
-            walletsList.filter(item => eqWalletName(item, preferredWalletAppName)).length >= 2;
-        if (preferredWalletAppName && preferredWallet && !someWalletsWithSameName) {
-            walletsList = [
-                { ...preferredWallet, isPreferred: true } as PersonalizedWalletInfo
-            ].concat(walletsList.filter(item => !eqWalletName(item, preferredWalletAppName)));
-        }
-
-        const atWallet = walletsList.find(item => eqWalletName(item, AT_WALLET_APP_NAME));
-        if (atWallet) {
-            walletsList = [atWallet].concat(
-                walletsList.filter(item => !eqWalletName(item, AT_WALLET_APP_NAME))
+        const withPreferred = (() => {
+            const preferredWalletAppName = appState.preferredWalletAppName;
+            const preferredWallet = sortedWallets.find(item =>
+                eqWalletName(item, preferredWalletAppName)
             );
-        }
+            const someWalletsWithSameName =
+                sortedWallets.filter(item => eqWalletName(item, preferredWalletAppName)).length >=
+                2;
 
-        return walletsList;
+            return preferredWalletAppName && preferredWallet && !someWalletsWithSameName
+                ? [
+                      { ...preferredWallet, isPreferred: true },
+                      ...sortedWallets.filter(item => !eqWalletName(item, preferredWalletAppName))
+                  ]
+                : sortedWallets;
+        })();
+
+        const withAt = (() => {
+            const atWallet = withPreferred.find(item => eqWalletName(item, AT_WALLET_APP_NAME));
+            return atWallet
+                ? [
+                      atWallet,
+                      ...withPreferred.filter(item => !eqWalletName(item, AT_WALLET_APP_NAME))
+                  ]
+                : withPreferred;
+        })();
+
+        const uiWallets = withAt.map(wallet => ({
+            ...wallet,
+            isSupportRequiredFeatures: tonConnectUI?.walletsRequiredFeatures
+                ? checkRequiredWalletFeatures(
+                      wallet.features ?? [],
+                      tonConnectUI.walletsRequiredFeatures
+                  )
+                : true
+        }));
+
+        return uiWallets;
     });
 
     const additionalRequestLoading = (): boolean =>

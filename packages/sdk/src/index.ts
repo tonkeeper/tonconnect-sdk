@@ -68,4 +68,5 @@ export {
     SEND_TRANSACTION_ERROR_CODES
 } from '@tonconnect/protocol';
 export { toUserFriendlyAddress } from './utils/address';
+export { checkRequiredWalletFeatures }  from './utils/feature-support';
 export { isTelegramUrl, encodeTelegramUrlParameters } from './utils/url';

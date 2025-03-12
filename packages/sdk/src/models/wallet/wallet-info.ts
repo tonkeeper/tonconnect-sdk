@@ -35,11 +35,6 @@ export interface WalletInfoBase {
     features?: Feature[];
 
     /**
-     * Indicates if the wallet supports required features.
-     */
-    isSupportRequiredFeatures: boolean;
-
-    /**
      * OS and browsers where the wallet could be installed
      */
     platforms: (

@@ -6,11 +6,11 @@ import {
     QRCodeStyled,
     WalletsContainerStyled
 } from './style';
-import { ConnectAdditionalRequest, WalletInfo } from '@tonconnect/sdk';
+import { ConnectAdditionalRequest } from '@tonconnect/sdk';
 import { appState } from 'src/app/state/app.state';
 import { setLastSelectedWalletInfo } from 'src/app/state/modals-state';
 import { FourWalletsItem, H1, WalletLabeledItem } from 'src/app/components';
-import { PersonalizedWalletInfo } from 'src/app/models/personalized-wallet-info';
+import { UIWalletInfo } from 'src/app/models/ui-wallet-info';
 import { IMG } from 'src/app/env/IMG';
 
 import { addReturnStrategy } from 'src/app/utils/url-strategy-helpers';
@@ -19,9 +19,9 @@ import { bridgesIsEqual, getUniqueBridges } from 'src/app/utils/bridge';
 interface DesktopUniversalModalProps {
     additionalRequest: ConnectAdditionalRequest;
 
-    walletsList: PersonalizedWalletInfo[];
+    walletsList: UIWalletInfo[];
 
-    onSelect: (walletInfo: WalletInfo) => void;
+    onSelect: (walletInfo: UIWalletInfo) => void;
 
     onSelectAllWallets: () => void;
 }

@@ -1,4 +1,4 @@
-import { ConnectAdditionalRequest, isWalletInfoRemote, WalletInfo } from '@tonconnect/sdk';
+import { ConnectAdditionalRequest, isWalletInfoRemote } from '@tonconnect/sdk';
 import { Component, createMemo, createSignal, For, Show } from 'solid-js';
 import { AtWalletIcon, FourWalletsItem, QRIcon, WalletItem } from 'src/app/components';
 import {
@@ -20,13 +20,14 @@ import { Translation } from 'src/app/components/typography/Translation';
 import { redirectToTelegram, redirectToWallet } from 'src/app/utils/url-strategy-helpers';
 import { bridgesIsEqual, getUniqueBridges } from 'src/app/utils/bridge';
 import { WalletUlContainer } from 'src/app/components/wallet-item/style';
+import { UIWalletInfo } from 'src/app/models/ui-wallet-info';
 
 interface MobileUniversalModalProps {
-    walletsList: WalletInfo[];
+    walletsList: UIWalletInfo[];
 
     additionalRequest: ConnectAdditionalRequest;
 
-    onSelect: (walletInfo: WalletInfo) => void;
+    onSelect: (walletInfo: UIWalletInfo) => void;
 
     onSelectAllWallets: () => void;
 }
@@ -36,7 +37,7 @@ export const MobileUniversalModal: Component<MobileUniversalModalProps> = props 
     const [firstClick, setFirstClick] = createSignal(true);
     const [universalLink, setUniversalLink] = createSignal<string | null>(null);
     const connector = appState.connector;
-    const walletsList = (): WalletInfo[] =>
+    const walletsList = (): UIWalletInfo[] =>
         props.walletsList.filter(w => supportsMobile(w) && w.appName !== AT_WALLET_APP_NAME);
     const shouldShowMoreButton = (): boolean => walletsList().length > 7;
 
