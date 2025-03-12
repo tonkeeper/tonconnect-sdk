@@ -145,7 +145,7 @@ export const WalletsModal: Component = () => {
         },
         err => {
             if (err instanceof WalletMissingRequiredFeaturesError) {
-                const errorAppName = err.cause.device.appName.toLowerCase();
+                const errorAppName = err.cause.connectEvent.device.appName.toLowerCase();
                 const wallet = walletsList()?.find(w => w.appName.toLowerCase() === errorAppName);
 
                 if (!wallet) {

@@ -1,14 +1,14 @@
-import { DeviceInfo } from '@tonconnect/protocol';
+import { ConnectEventSuccess } from '@tonconnect/protocol';
 import { TonConnectError } from 'src/errors/ton-connect.error';
 
 /**
  * Thrown when wallet can't get manifest by passed manifestUrl.
  */
 export class WalletMissingRequiredFeaturesError extends TonConnectError<{
-    device: DeviceInfo;
+    connectEvent: ConnectEventSuccess['payload'];
 }> {
     declare cause: {
-        device: DeviceInfo;
+        connectEvent: ConnectEventSuccess['payload'];
     };
 
     protected get info(): string {
@@ -19,7 +19,7 @@ export class WalletMissingRequiredFeaturesError extends TonConnectError<{
         message: string,
         options: {
             cause: {
-                device: DeviceInfo;
+                connectEvent: ConnectEventSuccess['payload'];
             };
         }
     ) {

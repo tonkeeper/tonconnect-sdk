@@ -54,6 +54,9 @@ export { BrowserEventDispatcher } from './tracker/browser-event-dispatcher';
 export type { TonAddressItem, TonProofItem, ConnectItem } from '@tonconnect/protocol';
 export {
     CHAIN,
+    ConnectEventSuccess,
+    ConnectItemReply,
+    TonAddressItemReply,
     DeviceInfo,
     Feature,
     SendTransactionFeature,

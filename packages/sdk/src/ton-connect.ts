@@ -595,9 +595,7 @@ export class TonConnect implements ITonConnect {
             this.onWalletConnectError(
                 new WalletMissingRequiredFeaturesError(
                     'Wallet does not support required features',
-                    {
-                        cause: { device: connectEvent.device }
-                    }
+                    { cause: { connectEvent } }
                 )
             );
             return;
