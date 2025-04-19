@@ -2,7 +2,7 @@ import { Locales } from 'src/models/locales';
 import { UIPreferences } from 'src/models/ui-preferences';
 import { WalletsListConfiguration } from 'src/models/wallets-list-configuration';
 import { ActionConfiguration } from 'src/models/action-configuration';
-import { RequiredFeatures } from '@tonconnect/sdk';
+import { Feature, RequireFeature } from '@tonconnect/sdk';
 
 export interface TonConnectUiOptions {
     /**
@@ -30,7 +30,7 @@ export interface TonConnectUiOptions {
     /**
      * Required features for wallets. If wallet doesn't support required features, it will be disabled.
      */
-    walletsRequiredFeatures?: RequiredFeatures;
+    walletsRequiredFeatures?: RequireFeature[] | ((features: Feature[]) => boolean);
 
     /**
      * Configuration for action-period (e.g. sendTransaction) UI elements: modals and notifications and wallet behaviour (return strategy).

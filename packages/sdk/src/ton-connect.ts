@@ -19,7 +19,7 @@ import {
 } from 'src/errors/wallet';
 import {
     Account,
-    RequiredFeatures,
+    RequireFeature,
     Wallet,
     WalletConnectionSource,
     WalletConnectionSourceHTTP,
@@ -97,7 +97,10 @@ export class TonConnect implements ITonConnect {
 
     private statusChangeErrorSubscriptions: ((err: TonConnectError) => void)[] = [];
 
-    private readonly walletsRequiredFeatures: RequiredFeatures | undefined;
+    private readonly walletsRequiredFeatures:
+        | RequireFeature[]
+        | ((features: Feature[]) => boolean)
+        | undefined;
 
     private abortController?: AbortController;
 
@@ -137,7 +140,8 @@ export class TonConnect implements ITonConnect {
 
         this.walletsList = new WalletsListManager({
             walletsListSource: options?.walletsListSource,
-            cacheTTLMs: options?.walletsListCacheTTLMs
+            cacheTTLMs: options?.walletsListCacheTTLMs,
+            walletsRequiredFeatures: options?.walletsRequiredFeatures
         });
 
         this.tracker = new TonConnectTracker({
@@ -583,7 +587,7 @@ export class TonConnect implements ITonConnect {
 
         const hasRequiredFeatures = checkRequiredWalletFeatures(
             connectEvent.device.features,
-            this.walletsRequiredFeatures
+            this.walletsRequiredFeatures ?? []
         );
 
         if (!hasRequiredFeatures) {
