@@ -8,6 +8,7 @@ export {
     SendTransactionFeatureDeprecated,
     SendTransactionFeature,
     SignDataType,
-    SignDataFeature
+    SignDataFeature,
+    SubscriptionFeature
 } from './feature';
 export { CHAIN } from './CHAIN';

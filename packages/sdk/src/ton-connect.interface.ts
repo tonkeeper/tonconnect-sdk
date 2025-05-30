@@ -1,6 +1,10 @@
 import { TonConnectError } from 'src/errors';
 import { Account, Wallet, WalletConnectionSource, WalletConnectionSourceHTTP } from 'src/models';
 import {
+    CancelSubscriptionV2Request,
+    CancelSubscriptionV2Response,
+    CreateSubscriptionV2Request,
+    CreateSubscriptionV2Response,
     SendTransactionRequest,
     SendTransactionResponse,
     SignDataResponse
@@ -111,4 +115,34 @@ export interface ITonConnect {
      * @returns session ID string or null if not available.
      */
     getSessionId(): Promise<string | null>;
+
+    /**
+     * Creates a subscription.
+     * @param subscription subscription data.
+     * @param options (optional) onRequestSent callback will be called after the subscription is created and signal to abort the request.
+     * @returns subscription response.
+     */
+    createSubscription(
+        subscription: CreateSubscriptionV2Request,
+        options: {
+            version: 'v2';
+            onRequestSent?: () => void;
+            signal?: AbortSignal;
+        }
+    ): Promise<CreateSubscriptionV2Response>;
+
+    /**
+     * Cancels a subscription.
+     * @param extensionAddress extension address of the subscription.
+     * @param options (optional) onRequestSent callback will be called after the subscription is cancelled and signal to abort the request.
+     * @returns subscription response.
+     */
+    cancelSubscription(
+        extensionAddress: CancelSubscriptionV2Request,
+        options?: {
+            version: 'v2';
+            onRequestSent?: () => void;
+            signal?: AbortSignal;
+        }
+    ): Promise<CancelSubscriptionV2Response>;
 }
