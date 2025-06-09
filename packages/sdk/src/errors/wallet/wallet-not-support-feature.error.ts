@@ -22,7 +22,7 @@ export class WalletNotSupportFeatureError extends TonConnectError {
             cause: {
                 requiredFeature: {
                     featureName: FeatureName;
-                    value?: RequiredFeatures['sendTransaction'] | RequiredFeatures['signData'];
+                    value?: RequiredFeatures['sendTransaction'] | RequiredFeatures['signData'] | RequiredFeatures['subscription'];
                 };
             };
         }

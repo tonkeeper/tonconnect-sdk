@@ -92,6 +92,28 @@ export function checkSignDataSupport(
     }
 }
 
+export function checkSubscriptionSupport(features: Feature[]): never | void {
+    const subscriptionFeature = findFeature(features, 'Subscription');
+    if (!subscriptionFeature) {
+        throw new WalletNotSupportFeatureError("Wallet doesn't support Subscription feature.", {
+            cause: {
+                requiredFeature: { featureName: 'Subscription', value: { versions: ['v2'] } }
+            }
+        });
+    }
+    if (subscriptionFeature.version !== 2) {
+        throw new WalletNotSupportFeatureError(
+            `Wallet supports Subscription feature, but version ${subscriptionFeature.version} is not supported. Version 2 is required.`,
+            {
+                cause: {
+                    requiredFeature: { featureName: 'Subscription', value: { versions: ['v2'] } }
+                }
+            }
+        );
+    }
+    return;
+}
+
 export function checkRequiredWalletFeatures(
     features: Feature[],
     walletsRequiredFeatures?: RequiredFeatures
@@ -100,7 +122,7 @@ export function checkRequiredWalletFeatures(
         return true;
     }
 
-    const { sendTransaction, signData } = walletsRequiredFeatures;
+    const { sendTransaction, signData, subscription } = walletsRequiredFeatures;
 
     if (sendTransaction) {
         const feature = findFeature(features, 'SendTransaction');
@@ -120,6 +142,17 @@ export function checkRequiredWalletFeatures(
         }
 
         if (!checkSignData(feature, signData)) {
+            return false;
+        }
+    }
+
+    if (subscription) {
+        const feature = findFeature(features, 'Subscription');
+        if (!feature) {
+            return false;
+        }
+
+        if (feature.version !== 2) {
             return false;
         }
     }

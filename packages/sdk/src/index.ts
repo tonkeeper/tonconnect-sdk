@@ -75,6 +75,7 @@ export {
     SignDataPayloadText,
     SignDataPayloadBinary,
     SignDataPayloadCell,
+    SubscriptionFeature,
     TonProofItemReply,
     TonProofItemReplySuccess,
     TonProofItemReplyError,
