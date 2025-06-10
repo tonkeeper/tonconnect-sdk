@@ -50,6 +50,14 @@ export type {
     DataSignedEvent,
     DataSentForSignatureEvent,
     DataSigningFailedEvent,
+    CreateSubscriptionV2Event,
+    CreateSubscriptionV2InitiatedEvent,
+    CreateSubscriptionV2CompletedEvent,
+    CreateSubscriptionV2FailedEvent,
+    CancelSubscriptionV2Event,
+    CancelSubscriptionV2InitiatedEvent,
+    CancelSubscriptionV2CompletedEvent,
+    CancelSubscriptionV2FailedEvent,
     SdkActionEvent,
     RequestVersionEvent,
     ResponseVersionEvent,
@@ -83,7 +91,9 @@ export {
     CONNECT_ITEM_ERROR_CODES,
     CONNECT_EVENT_ERROR_CODES,
     SEND_TRANSACTION_ERROR_CODES,
-    SIGN_DATA_ERROR_CODES
+    SIGN_DATA_ERROR_CODES,
+    CREATE_SUBSCRIPTION_V2_ERROR_CODES,
+    CANCEL_SUBSCRIPTION_V2_ERROR_CODES
 } from '@tonconnect/protocol';
 export { toUserFriendlyAddress } from './utils/address';
 export { checkRequiredWalletFeatures } from './utils/feature-support';

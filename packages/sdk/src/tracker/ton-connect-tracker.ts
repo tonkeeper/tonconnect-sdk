@@ -14,6 +14,12 @@ import {
     createTransactionSentForSignatureEvent,
     createTransactionSignedEvent,
     createTransactionSigningFailedEvent,
+    createSubscriptionV2CreationCompletedEvent,
+    createSubscriptionV2CreationInitiatedEvent,
+    createSubscriptionV2CreationFailedEvent,
+    createSubscriptionV2CancellationInitiatedEvent,
+    createSubscriptionV2CancellationCompletedEvent,
+    createSubscriptionV2CancellationFailedEvent,
     createVersionInfo,
     ResponseVersionEvent,
     SdkActionEvent,
@@ -55,6 +61,12 @@ export type TonConnectTrackerOptions = {
  *  * `sign-data-request-initiated`: when a user sends data for signature.
  *  * `sign-data-request-completed`: when a user successfully signs data.
  *  * `sign-data-request-failed`: when a user cancels data signing or there is an error during the signing process.
+ *  * `create-subscription-v2-initiated`: when a user starts creating a subscription.
+ *  * `create-subscription-v2-completed`: when a user successfully creates a subscription.
+ *  * `create-subscription-v2-failed`: when a user cancels subscription creation or there is an error during the creation process.
+ *  * `cancel-subscription-v2-initiated`: when a user starts canceling a subscription.
+ *  * `cancel-subscription-v2-completed`: when a user successfully cancels a subscription.
+ *  * `cancel-subscription-v2-failed`: when a user cancels subscription cancellation or there is an error during the cancellation process.
  *
  * If you want to track user actions, you can subscribe to the window events with prefix `ton-connect-`:
  *
@@ -331,6 +343,84 @@ export class TonConnectTracker {
     ): void {
         try {
             const event = createDataSigningFailedEvent(this.version, ...args);
+            this.dispatchUserActionEvent(event);
+        } catch (e) {}
+    }
+
+    /**
+     * Track subscription creation event initiated.
+     * @param args
+     */
+    public trackCreateSubscriptionV2Initiated(
+        ...args: WithoutVersion<Parameters<typeof createSubscriptionV2CreationInitiatedEvent>>
+    ): void {
+        try {
+            const event = createSubscriptionV2CreationInitiatedEvent(this.version, ...args);
+            this.dispatchUserActionEvent(event);
+        } catch (e) {}
+    }
+
+    /**
+     * Track subscription created event.
+     * @param args
+     */
+    public trackCreateSubscriptionV2Completed(
+        ...args: WithoutVersion<Parameters<typeof createSubscriptionV2CreationCompletedEvent>>
+    ): void {
+        try {
+            const event = createSubscriptionV2CreationCompletedEvent(this.version, ...args);
+            this.dispatchUserActionEvent(event);
+        } catch (e) {}
+    }
+
+    /**
+     * Track subscription creation failed event.
+     * @param args
+     */
+    public trackCreateSubscriptionV2Failed(
+        ...args: WithoutVersion<Parameters<typeof createSubscriptionV2CreationFailedEvent>>
+    ): void {
+        try {
+            const event = createSubscriptionV2CreationFailedEvent(this.version, ...args);
+            this.dispatchUserActionEvent(event);
+        } catch (e) {}
+    }
+
+    /**
+     * Track subscription cancellation event initiated.
+     * @param args
+     */
+    public trackCancelSubscriptionV2Initiated(
+        ...args: WithoutVersion<Parameters<typeof createSubscriptionV2CancellationInitiatedEvent>>
+    ): void {
+        try {
+            const event = createSubscriptionV2CancellationInitiatedEvent(this.version, ...args);
+            this.dispatchUserActionEvent(event);
+        } catch (e) {}
+    }
+
+    /**
+     * Track subscription canceled event.
+     * @param args
+     */
+    public trackCancelSubscriptionV2Completed(
+        ...args: WithoutVersion<Parameters<typeof createSubscriptionV2CancellationCompletedEvent>>
+    ): void {
+        try {
+            const event = createSubscriptionV2CancellationCompletedEvent(this.version, ...args);
+            this.dispatchUserActionEvent(event);
+        } catch (e) {}
+    }
+
+    /**
+     * Track subscription cancellation failed event.
+     * @param args
+     */
+    public trackCancelSubscriptionV2Failed(
+        ...args: WithoutVersion<Parameters<typeof createSubscriptionV2CancellationFailedEvent>>
+    ): void {
+        try {
+            const event = createSubscriptionV2CancellationFailedEvent(this.version, ...args);
             this.dispatchUserActionEvent(event);
         } catch (e) {}
     }

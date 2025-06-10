@@ -377,6 +377,12 @@ List of events:
 * `sign-data-request-initiated`: when a user initiates a request to sign data.
 * `sign-data-request-completed`: when a user successfully signs data.
 * `sign-data-request-failed`: when a user cancels data signing or there is an error during the signing process.
+* `create-subscription-v2-initiated`: when a user starts creating a subscription.
+* `create-subscription-v2-completed`: when a user successfully creates a subscription.
+* `create-subscription-v2-failed`: when a user cancels subscription creation or there is an error during the creation process.
+* `cancel-subscription-v2-initiated`: when a user starts canceling a subscription.
+* `cancel-subscription-v2-completed`: when a user successfully cancels a subscription.
+* `cancel-subscription-v2-failed`: when a user cancels subscription cancellation or there is an error during the cancellation process.
 
 If you want to track user actions, you can subscribe to the window events with prefix `ton-connect-`:
 
