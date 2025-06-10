@@ -18,6 +18,12 @@ import {
     createDataSentForSignatureEvent,
     createDataSignedEvent,
     createDataSigningFailedEvent,
+    createSubscriptionV2CancellationCompletedEvent,
+    createSubscriptionV2CancellationFailedEvent,
+    createSubscriptionV2CancellationInitiatedEvent,
+    createSubscriptionV2CreationCompletedEvent,
+    createSubscriptionV2CreationFailedEvent,
+    createSubscriptionV2CreationInitiatedEvent,
     createVersionInfo,
     EventDispatcher,
     ResponseVersionEvent,
@@ -340,14 +346,15 @@ export class TonConnectUITracker {
     }
 
     /**
-     * Track creation of subscription started event.
+     * Track subscription creation initiated event.
+     * This event is dispatched when a user starts creating a subscription.
      * @param args
      */
-    public trackSubscriptionCreationStarted(
-        ...args: WithoutVersion<Parameters<typeof createDataSentForSignatureEvent>>
+    public trackSubscriptionCreationInitiated(
+        ...args: WithoutVersion<Parameters<typeof createSubscriptionV2CreationInitiatedEvent>>
     ): void {
         try {
-            const event = createDataSentForSignatureEvent(this.version, ...args);
+            const event = createSubscriptionV2CreationInitiatedEvent(this.version, ...args);
             this.dispatchUserActionEvent(event);
         } catch (e) {}
     }
@@ -358,10 +365,10 @@ export class TonConnectUITracker {
      * @param args
      */
     public trackSubscriptionCreated(
-        ...args: WithoutVersion<Parameters<typeof createDataSignedEvent>>
+        ...args: WithoutVersion<Parameters<typeof createSubscriptionV2CreationCompletedEvent>>
     ): void {
         try {
-            const event = createDataSignedEvent(this.version, ...args);
+            const event = createSubscriptionV2CreationCompletedEvent(this.version, ...args);
             this.dispatchUserActionEvent(event);
         } catch (e) {}
     }
@@ -372,24 +379,24 @@ export class TonConnectUITracker {
      * @param args
      */
     public trackSubscriptionCreationFailed(
-        ...args: WithoutVersion<Parameters<typeof createDataSigningFailedEvent>>
+        ...args: WithoutVersion<Parameters<typeof createSubscriptionV2CreationFailedEvent>>
     ): void {
         try {
-            const event = createDataSigningFailedEvent(this.version, ...args);
+            const event = createSubscriptionV2CreationFailedEvent(this.version, ...args);
             this.dispatchUserActionEvent(event);
         } catch (e) {}
     }
 
     /**
-     * Track subscription cancellation started event.
-     * This event is dispatched when a user initiates the cancellation of a subscription.
+     * Track subscription cancellation initiated event.
+     * This event is dispatched when a user starts canceling a subscription.
      * @param args
      */
-    public trackSubscriptionCancellationStarted(
-        ...args: WithoutVersion<Parameters<typeof createDataSentForSignatureEvent>>
+    public trackSubscriptionCancellationInitiated(
+        ...args: WithoutVersion<Parameters<typeof createSubscriptionV2CancellationInitiatedEvent>>
     ): void {
         try {
-            const event = createDataSentForSignatureEvent(this.version, ...args);
+            const event = createSubscriptionV2CancellationInitiatedEvent(this.version, ...args);
             this.dispatchUserActionEvent(event);
         } catch (e) {}
     }
@@ -400,10 +407,10 @@ export class TonConnectUITracker {
      * @param args
      */
     public trackSubscriptionCanceled(
-        ...args: WithoutVersion<Parameters<typeof createDataSignedEvent>>
+        ...args: WithoutVersion<Parameters<typeof createSubscriptionV2CancellationCompletedEvent>>
     ): void {
         try {
-            const event = createDataSignedEvent(this.version, ...args);
+            const event = createSubscriptionV2CancellationCompletedEvent(this.version, ...args);
             this.dispatchUserActionEvent(event);
         } catch (e) {}
     }
@@ -414,10 +421,10 @@ export class TonConnectUITracker {
      * @param args
      */
     public trackSubscriptionCancellationFailed(
-        ...args: WithoutVersion<Parameters<typeof createDataSigningFailedEvent>>
+        ...args: WithoutVersion<Parameters<typeof createSubscriptionV2CancellationFailedEvent>>
     ): void {
         try {
-            const event = createDataSigningFailedEvent(this.version, ...args);
+            const event = createSubscriptionV2CancellationFailedEvent(this.version, ...args);
             this.dispatchUserActionEvent(event);
         } catch (e) {}
     }

@@ -1,6 +1,8 @@
 import type {
     Account,
     ConnectAdditionalRequest,
+    CreateSubscriptionV2Request,
+    CreateSubscriptionV2Response,
     RequiredFeatures,
     SignDataPayload,
     SignDataResponse,
@@ -635,11 +637,104 @@ export class TonConnectUI {
         }
     }
 
-    // public async createSubsciption(
-    //     data: CreateSubscriptionV2Request
-    // ): Promise<CreateSubscriptionResponse> {
+    public async createSubsciption(
+        data: CreateSubscriptionV2Request
+    ): Promise<CreateSubscriptionV2Response> {
+        this.tracker.trackSubscriptionCreationInitiated(this.wallet, data);
+        if (!this.connected) {
+            this.tracker.trackSubscriptionCreationFailed(
+                this.wallet,
+                data,
+                'Wallet was not connected'
+            );
+            throw new TonConnectUIError('Connect wallet to create a subscription.');
+        }
+        if (isInTMA()) {
+            sendExpand();
+        }
+        const { notifications, modals, returnStrategy, twaReturnUrl } =
+            this.getModalsAndNotificationsConfiguration();
 
-    // }
+        widgetController.setAction({
+            name: 'confirm-create-subscription',
+            showNotification: notifications.includes('before'),
+            openModal: modals.includes('before'),
+            created: false
+        });
+
+        const abortController = new AbortController();
+
+        const onRequestSent = (): void => {
+            if (abortController.signal.aborted) {
+                return;
+            }
+
+            widgetController.setAction({
+                name: 'confirm-create-subscription',
+                showNotification: notifications.includes('before'),
+                openModal: modals.includes('before'),
+                created: true
+            });
+
+            this.redirectAfterRequestSent({
+                returnStrategy,
+                twaReturnUrl
+            });
+        };
+
+        const unsubscribe = this.onTransactionModalStateChange(action => {
+            if (action?.openModal) {
+                return;
+            }
+
+            unsubscribe();
+            if (!action) {
+                abortController.abort();
+            }
+        });
+
+        try {
+            const result = await this.waitForCreateSubscription(
+                {
+                    data,
+                    signal: abortController.signal
+                },
+                onRequestSent
+            );
+
+            this.tracker.trackSubscriptionCreated(this.wallet, data, result);
+
+            widgetController.setAction({
+                name: 'subscription-created',
+                showNotification: notifications.includes('success'),
+                openModal: modals.includes('success')
+            });
+
+            return result;
+        } catch (e) {
+            if (e instanceof WalletNotSupportFeatureError) {
+                widgetController.clearAction();
+                widgetController.openWalletNotSupportFeatureModal(e.cause);
+
+                throw e;
+            }
+
+            widgetController.setAction({
+                name: 'subscription-creation-canceled',
+                showNotification: notifications.includes('error'),
+                openModal: modals.includes('error')
+            });
+
+            if (e instanceof TonConnectError) {
+                throw e;
+            } else {
+                console.error(e);
+                throw new TonConnectUIError('Unhandled error:' + e);
+            }
+        } finally {
+            unsubscribe();
+        }
+    }
 
     private redirectAfterRequestSent({
         returnStrategy,
@@ -862,13 +957,13 @@ export class TonConnectUI {
     }
 
     /**
-     * Waits for a transaction to be sent based on provided options, returning the transaction response.
-     * @param options - Configuration for transaction statuses and errors handling.
-     * @options.transaction - Transaction to send.
-     * @options.ignoreErrors - If true, ignores errors during waiting, waiting continues until a valid transaction is sent. Default is false.
-     * @options.abortSignal - Optional AbortSignal for external cancellation. Throws TonConnectUIError if aborted.
-     * @param onRequestSent (optional) will be called after the transaction is sent to the wallet.
-     * @throws TonConnectUIError if waiting is aborted or no valid transaction response is received and ignoreErrors is false.
+     * Waits for the signature of provided data via the wallet and returns the signed result.
+     * @param options - Options object:
+     *   - `data`: Payload to be signed by the wallet.
+     *   - `signal`: Optional AbortSignal to allow request cancellation.
+     * @param onRequestSent - Optional callback triggered after the signing request is sent to the wallet.
+     * @returns Promise resolving with the signature result or rejecting with an error.
+     * @throws TonConnectUIError if the signing is aborted or fails.
      * @internal
      */
     private async waitForSignData(
@@ -883,7 +978,7 @@ export class TonConnectUI {
                 return reject(new TonConnectUIError('SignData was not sent'));
             }
 
-            const onSignHandler = async (data: SignDataResponse): Promise<void> => {
+            const onSuccessHandler = async (data: SignDataResponse): Promise<void> => {
                 resolve(data);
             };
 
@@ -901,11 +996,74 @@ export class TonConnectUI {
             this.connector
                 .signData(data, { onRequestSent: onRequestSent, signal: signal })
                 .then(result => {
-                    // signal.removeEventListener('abort', onCanceledHandler);
-                    return onSignHandler(result);
+                    signal.removeEventListener('abort', onCanceledHandler);
+                    return onSuccessHandler(result);
                 })
                 .catch(reason => {
-                    // signal.removeEventListener('abort', onCanceledHandler);
+                    signal.removeEventListener('abort', onCanceledHandler);
+                    return onErrorsHandler(reason);
+                });
+        });
+    }
+
+    /**
+     * Waits until the wallet processes a `createSubscription` request and returns the resulting
+     * subscription creation response.
+     * @param options - Options object:
+     *   - `data`: Payload describing the subscription to create.
+     *   - `signal`: Optional {@link AbortSignal} to cancel the request externally.
+     * @param onRequestSent - Optional callback fired right after the request is delivered to the wallet.
+     * @returns Promise that resolves with the subscription creation result.
+     * @throws TonConnectUIError If the operation is aborted or fails.
+     * @internal
+     */
+    private async waitForCreateSubscription(
+        options: WaitCreateSubscriptionOptions,
+        onRequestSent?: () => void
+    ): Promise<CreateSubscriptionV2Response> {
+        return new Promise((resolve, reject) => {
+            const { data, signal } = options;
+
+            if (signal.aborted) {
+                this.tracker.trackSubscriptionCreationFailed(
+                    this.wallet,
+                    data,
+                    'CreateSubscription was cancelled'
+                );
+                return reject(new TonConnectUIError('CreateSubscription was not sent'));
+            }
+
+            const onSuccessHandler = async (data: CreateSubscriptionV2Response): Promise<void> => {
+                resolve(data);
+            };
+
+            const onErrorsHandler = (reason: TonConnectError): void => {
+                reject(reason);
+            };
+
+            const onCanceledHandler = (): void => {
+                this.tracker.trackSubscriptionCreationFailed(
+                    this.wallet,
+                    data,
+                    'CreateSubscription was cancelled'
+                );
+                reject(new TonConnectUIError('CreateSubscription was not sent'));
+            };
+
+            signal.addEventListener('abort', onCanceledHandler, { once: true });
+
+            this.connector
+                .createSubscription(data, {
+                    version: 'v2',
+                    onRequestSent: onRequestSent,
+                    signal: signal
+                })
+                .then(result => {
+                    signal.removeEventListener('abort', onCanceledHandler);
+                    return onSuccessHandler(result);
+                })
+                .catch(reason => {
+                    signal.removeEventListener('abort', onCanceledHandler);
                     return onErrorsHandler(reason);
                 });
         });
@@ -1087,5 +1245,10 @@ type WaitSendTransactionOptions = {
 
 type WaitSignDataOptions = {
     data: SignDataPayload;
+    signal: AbortSignal;
+};
+
+type WaitCreateSubscriptionOptions = {
+    data: CreateSubscriptionV2Request;
     signal: AbortSignal;
 };

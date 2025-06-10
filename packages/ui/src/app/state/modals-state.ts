@@ -11,9 +11,16 @@ export type ActionName =
     | 'transaction-canceled'
     | 'confirm-sign-data'
     | 'data-signed'
-    | 'sign-data-canceled';
+    | 'sign-data-canceled'
+    | 'confirm-create-subscription'
+    | 'subscription-created'
+    | 'subscription-creation-canceled';
 
-export type Action = BasicAction | ConfirmTransactionAction | ConfirmSignDataAction;
+export type Action =
+    | BasicAction
+    | ConfirmTransactionAction
+    | ConfirmSignDataAction
+    | ConfirmCreateSubscriptionAction;
 
 type BasicAction = {
     name: ActionName;
@@ -33,6 +40,20 @@ export type ConfirmSignDataAction = BasicAction & {
     returnStrategy: ReturnStrategy;
     twaReturnUrl: `${string}://${string}`;
     signed: boolean;
+};
+
+export type ConfirmCreateSubscriptionAction = BasicAction & {
+    name: 'confirm-create-subscription';
+    returnStrategy: ReturnStrategy;
+    twaReturnUrl: `${string}://${string}`;
+    created: boolean;
+};
+
+export type ConfirmCancelSubscriptionAction = BasicAction & {
+    name: 'confirm-cancel-subscription';
+    returnStrategy: ReturnStrategy;
+    twaReturnUrl: `${string}://${string}`;
+    canceled: boolean;
 };
 
 export const [walletsModalState, setWalletsModalState] = createSignal<WalletsModalState>({
