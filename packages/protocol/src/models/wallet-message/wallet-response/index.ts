@@ -21,17 +21,17 @@ export {
     SIGN_DATA_ERROR_CODES
 } from './sign-data-rpc-response';
 export {
-    SubscribeV2RpcResponse,
-    SubscribeV2RpcResponseSuccess,
-    SubscribeV2RpcResponseError,
-    SUBSCRIBE_ERROR_CODES
-} from './subscribe-v2-rpc-response';
+    CreateSubscriptionV2RpcResponse,
+    CreateSubscriptionV2RpcResponseSuccess,
+    CreateSubscriptionV2RpcResponseError,
+    CREATE_SUBSCRIPTION_V2_ERROR_CODES
+} from './create-subscription-v2-rpc-response';
 export {
-    UnsubscribeV2RpcResponse,
-    UnsubscribeV2RpcResponseSuccess,
-    UnsubscribeV2RpcResponseError,
-    UNSUBSCRIBE_ERROR_CODES
-} from './unsubscribe-v2-rpc-response';
+    CancelSubscriptionV2RpcResponse,
+    CancelSubscriptionV2RpcResponseSuccess,
+    CancelSubscriptionV2RpcResponseError,
+    CANCEL_SUBSCRIPTION_V2_ERROR_CODES
+} from './cancel-subscription-v2-rpc-response';
 export {
     DisconnectRpcResponse,
     DisconnectRpcResponseSuccess,

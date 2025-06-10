@@ -18,5 +18,5 @@ export type SignDataFeature = { name: 'SignData'; types: SignDataType[] };
 
 export type SubscriptionFeature = {
     name: 'Subscription';
-    version: 2;
+    versions: 2[];
 };

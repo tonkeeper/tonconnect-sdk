@@ -2,5 +2,5 @@ export type RpcMethod =
     | 'disconnect'
     | 'sendTransaction'
     | 'signData'
-    | 'subscribeV2'
-    | 'unsubscribeV2';
+    | 'createSubscriptionV2'
+    | 'cancelSubscriptionV2';

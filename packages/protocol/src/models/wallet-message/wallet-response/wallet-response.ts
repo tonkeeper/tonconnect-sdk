@@ -9,13 +9,13 @@ import {
     DisconnectRpcResponseSuccess
 } from './disconnect-rpc-response';
 import {
-    SubscribeV2RpcResponseError,
-    SubscribeV2RpcResponseSuccess
-} from './subscribe-v2-rpc-response';
+    CreateSubscriptionV2RpcResponseError,
+    CreateSubscriptionV2RpcResponseSuccess
+} from './create-subscription-v2-rpc-response';
 import {
-    UnsubscribeV2RpcResponseError,
-    UnsubscribeV2RpcResponseSuccess
-} from './unsubscribe-v2-rpc-response';
+    CancelSubscriptionV2RpcResponseError,
+    CancelSubscriptionV2RpcResponseSuccess
+} from './cancel-subscription-v2-rpc-response';
 
 export type RpcResponses = {
     sendTransaction: {
@@ -33,14 +33,14 @@ export type RpcResponses = {
         success: DisconnectRpcResponseSuccess;
     };
 
-    subscribeV2: {
-        error: SubscribeV2RpcResponseError;
-        success: SubscribeV2RpcResponseSuccess;
+    createSubscriptionV2: {
+        error: CreateSubscriptionV2RpcResponseError;
+        success: CreateSubscriptionV2RpcResponseSuccess;
     };
 
-    unsubscribeV2: {
-        error: UnsubscribeV2RpcResponseError;
-        success: UnsubscribeV2RpcResponseSuccess;
+    cancelSubscriptionV2: {
+        error: CancelSubscriptionV2RpcResponseError;
+        success: CancelSubscriptionV2RpcResponseSuccess;
     };
 };
 
