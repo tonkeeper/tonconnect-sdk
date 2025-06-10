@@ -537,6 +537,7 @@ export class TonConnect implements ITonConnect {
         data: CreateSubscriptionV2Request,
         options: {
             version: 'v2';
+            onRequestSent?: () => void;
             signal?: AbortSignal;
         }
     ): Promise<CreateSubscriptionV2Response> {
@@ -551,7 +552,11 @@ export class TonConnect implements ITonConnect {
         this.tracker.trackCreateSubscriptionV2Initiated(this.wallet, data);
 
         const response = await this.provider!.sendRequest(
-            createSubscriptionV2Parser.convertToRpcRequest(data)
+            createSubscriptionV2Parser.convertToRpcRequest(data),
+            {
+                onRequestSent: options.onRequestSent,
+                signal: abortController.signal
+            }
         );
 
         if (createSubscriptionV2Parser.isError(response)) {
@@ -575,8 +580,9 @@ export class TonConnect implements ITonConnect {
 
     public async cancelSubscription(
         data: CancelSubscriptionV2Request,
-        options?: {
+        options: {
             version: 'v2';
+            onRequestSent?: () => void;
             signal?: AbortSignal;
         }
     ): Promise<void> {
@@ -591,7 +597,11 @@ export class TonConnect implements ITonConnect {
         this.tracker.trackCancelSubscriptionV2Initiated(this.wallet, data);
 
         const response = await this.provider!.sendRequest(
-            cancelSubscriptionV2Parser.convertToRpcRequest(data)
+            cancelSubscriptionV2Parser.convertToRpcRequest(data),
+            {
+                onRequestSent: options.onRequestSent,
+                signal: abortController.signal
+            }
         );
 
         if (cancelSubscriptionV2Parser.isError(response)) {

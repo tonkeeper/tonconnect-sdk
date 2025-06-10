@@ -635,6 +635,12 @@ export class TonConnectUI {
         }
     }
 
+    // public async createSubsciption(
+    //     data: CreateSubscriptionV2Request
+    // ): Promise<CreateSubscriptionResponse> {
+
+    // }
+
     private redirectAfterRequestSent({
         returnStrategy,
         twaReturnUrl

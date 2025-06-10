@@ -670,7 +670,7 @@ export type CreateSubscriptionV2FailedEvent = {
     data: CreateSubscriptionV2Request;
     is_success: false;
     error_message: string;
-    error_code: CREATE_SUBSCRIPTION_V2_ERROR_CODES;
+    error_code: CREATE_SUBSCRIPTION_V2_ERROR_CODES | null;
 } & ConnectionInfo;
 
 export function createSubscriptionV2CreationFailedEvent(
@@ -678,13 +678,13 @@ export function createSubscriptionV2CreationFailedEvent(
     wallet: Wallet | null,
     data: CreateSubscriptionV2Request,
     errorMessage: string,
-    errorCode: CREATE_SUBSCRIPTION_V2_ERROR_CODES
+    errorCode: CREATE_SUBSCRIPTION_V2_ERROR_CODES | void
 ): CreateSubscriptionV2FailedEvent {
     return {
         type: 'create-subscription-v2-failed',
         is_success: false,
         error_message: errorMessage,
-        error_code: errorCode,
+        error_code: errorCode ?? null,
         data,
         ...createConnectionInfo(version, wallet)
     };
@@ -755,7 +755,7 @@ export type CancelSubscriptionV2FailedEvent = {
     data: CancelSubscriptionV2Request;
     is_success: false;
     error_message: string;
-    error_code: CANCEL_SUBSCRIPTION_V2_ERROR_CODES;
+    error_code: CANCEL_SUBSCRIPTION_V2_ERROR_CODES | null;
 } & ConnectionInfo;
 
 /**
@@ -766,14 +766,14 @@ export function createSubscriptionV2CancellationFailedEvent(
     wallet: Wallet | null,
     data: CancelSubscriptionV2Request,
     errorMessage: string,
-    errorCode: CANCEL_SUBSCRIPTION_V2_ERROR_CODES
+    errorCode: CANCEL_SUBSCRIPTION_V2_ERROR_CODES | void
 ): CancelSubscriptionV2FailedEvent {
     return {
         type: 'cancel-subscription-v2-failed',
         data,
         is_success: false,
         error_message: errorMessage,
-        error_code: errorCode,
+        error_code: errorCode ?? null,
         ...createConnectionInfo(version, wallet)
     };
 }

@@ -23,8 +23,8 @@ export interface SubscriptionV2Metadata {
 export interface CreateSubscriptionV2Request {
     /** Beneficiary address */
     beneficiary: string;
-    /** Subscription ID */
-    subscriptionId: number;
+    /** Subscription UUID defined by merchant */
+    subscriptionId: string;
     /** Subscription period in seconds */
     period: number;
     /** Payment amount in TON */

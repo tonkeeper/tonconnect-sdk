@@ -1,6 +1,12 @@
 import { TonConnectError } from 'src/errors';
 import { Account, Wallet, WalletConnectionSource, WalletConnectionSourceHTTP } from 'src/models';
-import { SendTransactionRequest, SendTransactionResponse, SignDataResponse } from 'src/models/methods';
+import {
+    CancelSubscriptionV2Request,
+    CreateSubscriptionV2Request,
+    SendTransactionRequest,
+    SendTransactionResponse,
+    SignDataResponse
+} from 'src/models/methods';
 import { ConnectAdditionalRequest } from 'src/models/methods/connect/connect-additional-request';
 import { WalletInfo } from 'src/models/wallet/wallet-info';
 import { WalletConnectionSourceJS } from 'src/models/wallet/wallet-connection-source';
@@ -100,5 +106,25 @@ export interface ITonConnect {
             onRequestSent?: () => void;
             signal?: AbortSignal;
         }
-    ): Promise<SignDataResponse> 
+    ): Promise<SignDataResponse>;
+
+    createSubscription(
+        subscription: CreateSubscriptionV2Request,
+        options: {
+            version: 'v2';
+            onRequestSent?: () => void;
+            signal?: AbortSignal;
+        }
+    ): Promise<{
+        extensionAddress: string;
+    }>;
+
+    cancelSubscription(
+        extensionAddress: CancelSubscriptionV2Request,
+        options?: {
+            version: 'v2';
+            onRequestSent?: () => void;
+            signal?: AbortSignal;
+        }
+    ): Promise<void>;
 }

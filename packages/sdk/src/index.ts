@@ -24,6 +24,12 @@ export {
     createDataSentForSignatureEvent,
     createDataSigningFailedEvent,
     createDataSignedEvent,
+    createSubscriptionV2CreationInitiatedEvent,
+    createSubscriptionV2CreationCompletedEvent,
+    createSubscriptionV2CreationFailedEvent,
+    createSubscriptionV2CancellationInitiatedEvent,
+    createSubscriptionV2CancellationCompletedEvent,
+    createSubscriptionV2CancellationFailedEvent,
     createRequestVersionEvent,
     createResponseVersionEvent,
     createVersionInfo
