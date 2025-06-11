@@ -637,10 +637,20 @@ export class TonConnectUI {
         }
     }
 
-    public async createSubsciption(
-        data: CreateSubscriptionV2Request
+    public async createSubscription(
+        data: CreateSubscriptionV2Request,
+        options: {
+            version: 'v2';
+        }
     ): Promise<CreateSubscriptionV2Response> {
+        if (options.version !== 'v2') {
+            throw new TonConnectUIError(
+                `Unsupported version "${options.version}" for createSubscription method.`
+            );
+        }
+
         this.tracker.trackSubscriptionCreationInitiated(this.wallet, data);
+
         if (!this.connected) {
             this.tracker.trackSubscriptionCreationFailed(
                 this.wallet,
