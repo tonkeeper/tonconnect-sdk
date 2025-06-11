@@ -27,8 +27,8 @@ export interface CreateSubscriptionV2Request {
     subscriptionId: string;
     /** Subscription period in seconds */
     period: number;
-    /** Payment amount in TON */
-    paymentAmount: string;
+    /** Amount in nanoTON */
+    amount: string;
     /** First charging date (optional) */
     firstChargingDate?: number;
     /** Subscription metadata */

@@ -5,9 +5,7 @@ export type CreateSubscriptionV2RpcResponse =
     | CreateSubscriptionV2RpcResponseError;
 
 export interface CreateSubscriptionV2RpcResponseSuccess {
-    result: {
-        extensionAddress: string;
-    };
+    result: { boc: string };
     id: string;
 }
 

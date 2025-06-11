@@ -2,7 +2,9 @@ import { TonConnectError } from 'src/errors';
 import { Account, Wallet, WalletConnectionSource, WalletConnectionSourceHTTP } from 'src/models';
 import {
     CancelSubscriptionV2Request,
+    CancelSubscriptionV2Response,
     CreateSubscriptionV2Request,
+    CreateSubscriptionV2Response,
     SendTransactionRequest,
     SendTransactionResponse,
     SignDataResponse
@@ -115,9 +117,7 @@ export interface ITonConnect {
             onRequestSent?: () => void;
             signal?: AbortSignal;
         }
-    ): Promise<{
-        extensionAddress: string;
-    }>;
+    ): Promise<CreateSubscriptionV2Response>;
 
     cancelSubscription(
         extensionAddress: CancelSubscriptionV2Request,
@@ -126,5 +126,5 @@ export interface ITonConnect {
             onRequestSent?: () => void;
             signal?: AbortSignal;
         }
-    ): Promise<void>;
+    ): Promise<CancelSubscriptionV2Response>;
 }

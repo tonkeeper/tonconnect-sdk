@@ -33,7 +33,8 @@ import {
     SignDataResponse,
     CreateSubscriptionV2Request,
     CreateSubscriptionV2Response,
-    CancelSubscriptionV2Request
+    CancelSubscriptionV2Request,
+    CancelSubscriptionV2Response
 } from 'src/models/methods';
 import { ConnectAdditionalRequest } from 'src/models/methods/connect/connect-additional-request';
 import { TonConnectOptions } from 'src/models/ton-connect-options';
@@ -585,7 +586,7 @@ export class TonConnect implements ITonConnect {
             onRequestSent?: () => void;
             signal?: AbortSignal;
         }
-    ): Promise<void> {
+    ): Promise<CancelSubscriptionV2Response> {
         const abortController = createAbortController(options?.signal);
         if (abortController.signal.aborted) {
             throw new TonConnectError('Subscription V2 cancellation was aborted');
@@ -614,7 +615,13 @@ export class TonConnect implements ITonConnect {
             return cancelSubscriptionV2Parser.parseAndThrowError(response);
         }
 
-        this.tracker.trackCancelSubscriptionV2Completed(this.wallet, data);
+        const result = cancelSubscriptionV2Parser.convertFromRpcResponse(
+            response as CreateSubscriptionV2RpcResponseSuccess
+        );
+
+        this.tracker.trackCancelSubscriptionV2Completed(this.wallet, data, result);
+
+        return result;
     }
 
     /**

@@ -101,7 +101,7 @@ export function checkSubscriptionSupport(features: Feature[]): never | void {
             }
         });
     }
-    if (!subscriptionFeature.versions.includes(2)) {
+    if (!subscriptionFeature.versions.includes('v2')) {
         const errMfg = subscriptionFeature.versions.length === 0
             ? "Wallet doesn't support Subscription feature."
             : `Wallet supports Subscription feature, but only versions: ${subscriptionFeature.versions.join(', ')}. Version 2 is required.`;
@@ -156,7 +156,7 @@ export function checkRequiredWalletFeatures(
             return false;
         }
 
-        if (feature.versions.includes(2)) {
+        if (feature.versions.includes('v2')) {
             return false;
         }
     }

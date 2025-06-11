@@ -5,9 +5,7 @@ export type CancelSubscriptionV2RpcResponse =
     | CancelSubscriptionV2RpcResponseError;
 
 export interface CancelSubscriptionV2RpcResponseSuccess {
-    result: {
-        extensionAddress: string;
-    };
+    result: { boc: string };
     id: string;
 }
 

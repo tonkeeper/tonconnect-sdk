@@ -9,6 +9,7 @@ import {
 } from '@tonconnect/protocol';
 import {
     CancelSubscriptionV2Request,
+    CancelSubscriptionV2Response,
     SendTransactionRequest,
     SendTransactionResponse,
     SignDataResponse,
@@ -643,7 +644,7 @@ export function createSubscriptionV2CreationInitiatedEvent(
 export type CreateSubscriptionV2CompletedEvent = {
     type: 'create-subscription-v2-completed';
     data: CreateSubscriptionV2Request;
-    subscription: CreateSubscriptionV2Response;
+    result: CreateSubscriptionV2Response;
     is_success: true;
 } & ConnectionInfo;
 
@@ -651,13 +652,13 @@ export function createSubscriptionV2CreationCompletedEvent(
     version: Version,
     wallet: Wallet | null,
     data: CreateSubscriptionV2Request,
-    subscription: CreateSubscriptionV2Response
+    result: CreateSubscriptionV2Response
 ): CreateSubscriptionV2CompletedEvent {
     return {
         type: 'create-subscription-v2-completed',
         is_success: true,
         data,
-        subscription,
+        result,
         ...createConnectionInfo(version, wallet)
     };
 }
@@ -729,6 +730,7 @@ export type CancelSubscriptionV2CompletedEvent = {
     type: 'cancel-subscription-v2-completed';
     is_success: true;
     data: CancelSubscriptionV2Request;
+    result: CancelSubscriptionV2Response;
 } & ConnectionInfo;
 
 /**
@@ -737,11 +739,13 @@ export type CancelSubscriptionV2CompletedEvent = {
 export function createSubscriptionV2CancellationCompletedEvent(
     version: Version,
     wallet: Wallet | null,
-    data: CancelSubscriptionV2Request
+    data: CancelSubscriptionV2Request,
+    result: CancelSubscriptionV2Response
 ): CancelSubscriptionV2CompletedEvent {
     return {
         type: 'cancel-subscription-v2-completed',
         data,
+        result,
         is_success: true,
         ...createConnectionInfo(version, wallet)
     };
