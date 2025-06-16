@@ -26,7 +26,7 @@ const defaultConfig: UseOpenedNotificationsConfig = {
 
 const [latestAction, setLatestAction] = createSignal<Action | null>(null);
 
-const confirmActions: ActionName[] = [
+const confirmActions: readonly ActionName[] = [
     'confirm-transaction',
     'confirm-sign-data',
     'confirm-create-subscription',
