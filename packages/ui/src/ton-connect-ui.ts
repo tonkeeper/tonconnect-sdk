@@ -1,5 +1,7 @@
 import type {
     Account,
+    CancelSubscriptionV2Request,
+    CancelSubscriptionV2Response,
     ConnectAdditionalRequest,
     CreateSubscriptionV2Request,
     CreateSubscriptionV2Response,
@@ -746,7 +748,116 @@ export class TonConnectUI {
         }
     }
 
-    // public async cancelSubscription() {} // TODO: implement cancel subscription method
+    public async cancelSubscription(
+        data: CancelSubscriptionV2Request,
+        options: {
+            version: 'v2';
+        }
+    ): Promise<CancelSubscriptionV2Response> {
+        if (options.version !== 'v2') {
+            throw new TonConnectUIError(
+                `Unsupported version "${options.version}" for cancelSubscription method.`
+            );
+        }
+
+        this.tracker.trackSubscriptionCancellationInitiated(this.wallet, data);
+
+        if (!this.connected) {
+            this.tracker.trackSubscriptionCancellationFailed(
+                this.wallet,
+                data,
+                'Wallet was not connected'
+            );
+            throw new TonConnectUIError('Connect wallet to cancel a subscription.');
+        }
+
+        if (isInTMA()) {
+            sendExpand();
+        }
+
+        const { notifications, modals, returnStrategy, twaReturnUrl } =
+            this.getModalsAndNotificationsConfiguration();
+
+        widgetController.setAction({
+            name: 'confirm-cancel-subscription',
+            showNotification: notifications.includes('before'),
+            openModal: modals.includes('before'),
+            canceled: false
+        });
+
+        const abortController = new AbortController();
+
+        const onRequestSent = (): void => {
+            if (abortController.signal.aborted) {
+                return;
+            }
+
+            widgetController.setAction({
+                name: 'confirm-cancel-subscription',
+                showNotification: notifications.includes('before'),
+                openModal: modals.includes('before'),
+                canceled: true
+            });
+
+            this.redirectAfterRequestSent({
+                returnStrategy,
+                twaReturnUrl
+            });
+        };
+
+        const unsubscribe = this.onTransactionModalStateChange(action => {
+            if (action?.openModal) {
+                return;
+            }
+
+            unsubscribe();
+            if (!action) {
+                abortController.abort();
+            }
+        });
+
+        try {
+            const result = await this.waitForCancelSubscription(
+                {
+                    data,
+                    signal: abortController.signal
+                },
+                onRequestSent
+            );
+
+            this.tracker.trackSubscriptionCanceled(this.wallet, data, result);
+
+            widgetController.setAction({
+                name: 'subscription-cancellation-initiated',
+                showNotification: notifications.includes('success'),
+                openModal: modals.includes('success')
+            });
+
+            return result;
+        } catch (e) {
+            if (e instanceof WalletNotSupportFeatureError) {
+                widgetController.clearAction();
+                widgetController.openWalletNotSupportFeatureModal(e.cause);
+
+                throw e;
+            }
+
+            widgetController.setAction({
+                name: 'subscription-cancellation-canceled',
+                showNotification: notifications.includes('error'),
+                openModal: modals.includes('error')
+            });
+
+            if (e instanceof TonConnectError) {
+                throw e;
+            } else {
+                console.error(e);
+                throw new TonConnectUIError('Unhandled error:' + e);
+            }
+        } finally {
+            unsubscribe();
+        }
+    }
 
     private redirectAfterRequestSent({
         returnStrategy,
@@ -1021,6 +1132,7 @@ export class TonConnectUI {
     /**
      * Waits until the wallet processes a `createSubscription` request and returns the resulting
      * subscription creation response.
+     *
      * @param options - Options object:
      *   - `data`: Payload describing the subscription to create.
      *   - `signal`: Optional {@link AbortSignal} to cancel the request externally.
@@ -1066,6 +1178,70 @@ export class TonConnectUI {
 
             this.connector
                 .createSubscription(data, {
+                    version: 'v2',
+                    onRequestSent: onRequestSent,
+                    signal: signal
+                })
+                .then(result => {
+                    signal.removeEventListener('abort', onCanceledHandler);
+                    return onSuccessHandler(result);
+                })
+                .catch(reason => {
+                    signal.removeEventListener('abort', onCanceledHandler);
+                    return onErrorsHandler(reason);
+                });
+        });
+    }
+
+    /**
+     * Waits until the wallet processes a `cancelSubscription` request and returns the resulting
+     * cancellation response.
+     *
+     * @param options - Options object:
+     *   - `data`: Payload describing the subscription to cancel.
+     *   - `signal`: Optional {@link AbortSignal} to cancel the request externally.
+     * @param onRequestSent - Optional callback fired right after the request is delivered to the wallet.
+     * @returns Promise that resolves with the subscription cancellation result.
+     * @throws TonConnectUIError If the operation is aborted or fails.
+     * @internal
+     */
+    private async waitForCancelSubscription(
+        options: WaitCancelSubscriptionOptions,
+        onRequestSent?: () => void
+    ): Promise<CancelSubscriptionV2Response> {
+        return new Promise((resolve, reject) => {
+            const { data, signal } = options;
+
+            if (signal.aborted) {
+                this.tracker.trackSubscriptionCancellationFailed(
+                    this.wallet,
+                    data,
+                    'CancelSubscription was cancelled'
+                );
+                return reject(new TonConnectUIError('CancelSubscription was not sent'));
+            }
+
+            const onSuccessHandler = async (data: CancelSubscriptionV2Response): Promise<void> => {
+                resolve(data);
+            };
+
+            const onErrorsHandler = (reason: TonConnectError): void => {
+                reject(reason);
+            };
+
+            const onCanceledHandler = (): void => {
+                this.tracker.trackSubscriptionCancellationFailed(
+                    this.wallet,
+                    data,
+                    'CancelSubscription was cancelled'
+                );
+                reject(new TonConnectUIError('CancelSubscription was not sent'));
+            };
+
+            signal.addEventListener('abort', onCanceledHandler, { once: true });
+
+            this.connector
+                .cancelSubscription(data, {
                     version: 'v2',
                     onRequestSent: onRequestSent,
                     signal: signal
@@ -1262,5 +1438,10 @@ type WaitSignDataOptions = {
 
 type WaitCreateSubscriptionOptions = {
     data: CreateSubscriptionV2Request;
+    signal: AbortSignal;
+};
+
+type WaitCancelSubscriptionOptions = {
+    data: CancelSubscriptionV2Request;
     signal: AbortSignal;
 };

@@ -23,7 +23,8 @@ export type Action =
     | BasicAction
     | ConfirmTransactionAction
     | ConfirmSignDataAction
-    | ConfirmCreateSubscriptionAction;
+    | ConfirmCreateSubscriptionAction
+    | ConfirmCancelSubscriptionAction;
 
 type BasicAction = {
     name: ActionName;
