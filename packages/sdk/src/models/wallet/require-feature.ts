@@ -43,5 +43,7 @@ export type RequiredSignDataFeature = {
  * Required features for the subscription feature.
  */
 export type RequiredSubscriptionFeature = {
-    versions?: 'v2'[]
+    versions?: {
+        v2?: boolean;
+    };
 };
