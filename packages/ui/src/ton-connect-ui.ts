@@ -715,7 +715,7 @@ export class TonConnectUI {
             this.tracker.trackSubscriptionCreated(this.wallet, data, result);
 
             widgetController.setAction({
-                name: 'subscription-created',
+                name: 'subscription-creation-initiated',
                 showNotification: notifications.includes('success'),
                 openModal: modals.includes('success')
             });
@@ -745,6 +745,8 @@ export class TonConnectUI {
             unsubscribe();
         }
     }
+
+    // public async cancelSubscription() {} // TODO: implement cancel subscription method
 
     private redirectAfterRequestSent({
         returnStrategy,

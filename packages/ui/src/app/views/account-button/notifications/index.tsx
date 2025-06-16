@@ -1,4 +1,4 @@
-import { Component, For, Match, Switch } from 'solid-js';
+import { Component, For } from 'solid-js';
 import { TransitionGroup } from 'solid-transition-group';
 import { ConfirmOperationNotification } from './confirm-operation-notification';
 import { ErrorTransactionNotification } from './error-transaction-notification';
@@ -9,6 +9,36 @@ import { useOpenedNotifications } from 'src/app/hooks/use-notifications';
 import { animate } from 'src/app/utils/animate';
 import { ErrorSignDataNotification } from './error-sign-data-notification';
 import { SuccessSignDataNotification } from './success-sign-data-notification';
+import { SuccessCreateSubscriptionNotification } from './success-create-subscription-notification';
+import { ErrorCreateSubscriptionNotification } from './error-create-subscription-notification';
+import { SuccessCancelSubscriptionNotification } from './success-cancel-subscription-notification';
+import { ErrorCancelSubscriptionNotification } from './error-cancel-subscription-notification';
+import { ActionName } from 'src/app/state/modals-state';
+
+// Map action strings to their corresponding notification components
+const NotificationComponentMap: Record<ActionName, Component<{ class: string }>> = {
+    // transaction
+    'transaction-sent': SuccessTransactionNotification,
+    'transaction-canceled': ErrorTransactionNotification,
+
+    // sign‑data
+    'data-signed': SuccessSignDataNotification,
+    'sign-data-canceled': ErrorSignDataNotification,
+
+    // subscription create
+    'subscription-creation-initiated': SuccessCreateSubscriptionNotification,
+    'subscription-creation-canceled': ErrorCreateSubscriptionNotification,
+
+    // subscription cancel
+    'subscription-cancellation-initiated': SuccessCancelSubscriptionNotification,
+    'subscription-cancellation-canceled': ErrorCancelSubscriptionNotification,
+
+    // confirm dialogs
+    'confirm-transaction': ConfirmOperationNotification,
+    'confirm-sign-data': ConfirmOperationNotification,
+    'confirm-create-subscription': ConfirmOperationNotification,
+    'confirm-cancel-subscription': ConfirmOperationNotification
+};
 
 export interface NotificationsProps extends Styleable {}
 
@@ -45,30 +75,13 @@ export const Notifications: Component<NotificationsProps> = props => {
                 }}
             >
                 <For each={openedNotifications()}>
-                    {openedNotification => (
-                        <Switch>
-                            <Match when={openedNotification.action === 'transaction-sent'}>
-                                <SuccessTransactionNotification class={NotificationClass} />
-                            </Match>
-                            <Match when={openedNotification.action === 'transaction-canceled'}>
-                                <ErrorTransactionNotification class={NotificationClass} />
-                            </Match>
-                            <Match when={openedNotification.action === 'data-signed'}>
-                                <SuccessSignDataNotification class={NotificationClass} />
-                            </Match>
-                            <Match when={openedNotification.action === 'sign-data-canceled'}>
-                                <ErrorSignDataNotification class={NotificationClass} />
-                            </Match>
-                            <Match
-                                when={
-                                    openedNotification.action === 'confirm-transaction' ||
-                                    openedNotification.action === 'confirm-sign-data'
-                                }
-                            >
-                                <ConfirmOperationNotification class={NotificationClass} />
-                            </Match>
-                        </Switch>
-                    )}
+                    {openedNotification => {
+                        const Notification = NotificationComponentMap[openedNotification.action];
+                        if (!Notification) return null;
+
+                        // Prefer a stable key (e.g. openedNotification.id) if available
+                        return <Notification class={NotificationClass} />;
+                    }}
                 </For>
             </TransitionGroup>
         </div>

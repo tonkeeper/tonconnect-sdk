@@ -13,8 +13,11 @@ export type ActionName =
     | 'data-signed'
     | 'sign-data-canceled'
     | 'confirm-create-subscription'
-    | 'subscription-created'
-    | 'subscription-creation-canceled';
+    | 'confirm-cancel-subscription'
+    | 'subscription-creation-initiated'
+    | 'subscription-creation-canceled'
+    | 'subscription-cancellation-initiated'
+    | 'subscription-cancellation-canceled';
 
 export type Action =
     | BasicAction
