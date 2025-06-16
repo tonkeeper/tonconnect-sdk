@@ -24,11 +24,16 @@ const createSubscriptionV2Errors: Partial<
 
 export class CreateSubscriptionV2Parser extends RpcParser<'createSubscriptionV2'> {
     convertToRpcRequest(
-        payload: CreateSubscriptionV2Request
+        request: Omit<CreateSubscriptionV2Request, 'validUntil' | 'subscription'> & {
+            valid_until: number;
+            subscription: Omit<CreateSubscriptionV2Request['subscription'], 'firstChargeDate'> & {
+                first_charge_date?: CreateSubscriptionV2Request['subscription']['firstChargeDate'];
+            };
+        }
     ): WithoutId<CreateSubscriptionV2RpcRequest> {
         return {
             method: 'createSubscriptionV2',
-            params: [JSON.stringify(payload)]
+            params: [JSON.stringify(request)]
         };
     }
 

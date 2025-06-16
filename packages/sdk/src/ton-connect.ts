@@ -553,7 +553,16 @@ export class TonConnect implements ITonConnect {
         this.tracker.trackCreateSubscriptionV2Initiated(this.wallet, data);
 
         const response = await this.provider!.sendRequest(
-            createSubscriptionV2Parser.convertToRpcRequest(data),
+            createSubscriptionV2Parser.convertToRpcRequest({
+                ...data,
+                valid_until: data.validUntil,
+                subscription: {
+                    ...data.subscription,
+                    ...(data.subscription.firstChargeDate !== undefined && {
+                        first_charge_date: data.subscription.firstChargeDate
+                    })
+                }
+            }),
             {
                 onRequestSent: options.onRequestSent,
                 signal: abortController.signal
@@ -598,7 +607,11 @@ export class TonConnect implements ITonConnect {
         this.tracker.trackCancelSubscriptionV2Initiated(this.wallet, data);
 
         const response = await this.provider!.sendRequest(
-            cancelSubscriptionV2Parser.convertToRpcRequest(data),
+            cancelSubscriptionV2Parser.convertToRpcRequest({
+                ...data,
+                valid_until: data.validUntil,
+                extension_address: data.extensionAddress
+            }),
             {
                 onRequestSent: options.onRequestSent,
                 signal: abortController.signal

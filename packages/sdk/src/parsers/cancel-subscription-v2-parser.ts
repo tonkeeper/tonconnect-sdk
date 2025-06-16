@@ -24,11 +24,14 @@ const cancelSubscriptionV2Errors: Partial<
 
 export class CancelSubscriptionV2Parser extends RpcParser<'cancelSubscriptionV2'> {
     convertToRpcRequest(
-        payload: CancelSubscriptionV2Request
+        request: Omit<CancelSubscriptionV2Request, 'validUntil' | 'extensionAddress'> & {
+            valid_until: number;
+            extension_address: CancelSubscriptionV2Request['extensionAddress'];
+        }
     ): WithoutId<CancelSubscriptionV2RpcRequest> {
         return {
             method: 'cancelSubscriptionV2',
-            params: [JSON.stringify(payload)]
+            params: [JSON.stringify(request)]
         };
     }
 
