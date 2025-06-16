@@ -550,6 +550,19 @@ export class TonConnect implements ITonConnect {
         this.checkConnection();
         checkSubscriptionSupport(this.wallet!.device.features);
 
+        const BASE_PERIODS = [604_800, 2_592_000, 2_629_800, 31_557_600] as const;
+
+        const isValidPeriod =
+          Number.isInteger(data.subscription.period) &&
+          data.subscription.period > 0 &&
+          BASE_PERIODS.some(p => data.subscription.period % p === 0);
+
+        if (!isValidPeriod) {
+            throw new TonConnectError(
+                'Subscription period must be a multiple of 604800 (7 days), 2592000 (30 days), 2629800 (calendar month), or 31557600 (calendar year)'
+            );
+        }
+
         this.tracker.trackCreateSubscriptionV2Initiated(this.wallet, data);
 
         const response = await this.provider!.sendRequest(
