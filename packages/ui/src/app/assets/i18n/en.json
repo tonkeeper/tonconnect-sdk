@@ -37,6 +37,22 @@
     },
     "signDataCanceled": {
       "header": "Sign data canceled"
+    },
+    "createSubscriptionInitiated": {
+      "header": "Create Subscription initiated",
+      "text": "Your subscription will be created in a few seconds."
+    },
+    "createSubscriptionCanceled": {
+      "header": "Create Subscription canceled",
+      "text": "There will be no changes to your account."
+    },
+    "cancelSubscriptionInitiated": {
+      "header": "Cancel Subscription initiated",
+      "text": "Your subscription will be canceled in a few seconds."
+    },
+    "cancelSubscriptionCanceled": {
+      "header": "Cancel Subscription canceled",
+      "text": "There will be no changes to your account."
     }
   },
   "walletItem": {
@@ -140,9 +156,19 @@
       "header": "Sign the data in {{ name }}",
       "text": "It will only take a moment."
     },
+    "confirmCancelSubscription": {
+      "header": "Confirm cancel subscription in {{ name }}",
+      "text": "It will only take a moment."
+    },
+    "confirmCreateSubscription": {
+      "header": "Confirm create subscription in {{ name }}",
+      "text": "It will only take a moment."
+    },
     "transactionSent": "$notifications.transactionSent",
     "transactionCanceled": "$notifications.transactionCanceled",
     "dataSigned": "$notifications.dataSigned",
-    "signDataCanceled": "$notifications.signDataCanceled"
+    "signDataCanceled": "$notifications.signDataCanceled",
+    "createSubscriptionInitiated": "$notifications.createSubscriptionInitiated",
+    "createSubscriptionCanceled": "$notifications.createSubscriptionCanceled"
   }
 }
