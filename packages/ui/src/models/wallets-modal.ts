@@ -66,7 +66,10 @@ export type ChooseSupportedFeatureWalletsModal = {
     type: 'wallet-not-support-feature';
     requiredFeature: {
         featureName: FeatureName;
-        value?: RequiredFeatures['sendTransaction'];
+        value?:
+            | RequiredFeatures['sendTransaction']
+            | RequiredFeatures['signData']
+            | RequiredFeatures['subscription'];
     };
 };
 

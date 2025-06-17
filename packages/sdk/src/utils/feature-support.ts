@@ -160,7 +160,9 @@ export function checkRequiredWalletFeatures(
             return false;
         }
 
-        return feature.versions.v2;
+        if (!feature.versions.v2) {
+            return false;
+        }
     }
 
     return true;

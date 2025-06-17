@@ -30,7 +30,7 @@ import {
     Link,
     LinkIcon
 } from 'src/app/components';
-import { checkRequiredWalletFeatures, Wallet } from '@tonconnect/sdk';
+import { checkRequiredWalletFeatures, RequiredFeatures, Wallet } from '@tonconnect/sdk';
 import { RestoreInfoModal } from './restore-info-modal';
 import { ChooseSupportedFeatureWalletsModal } from 'src/models/wallets-modal';
 import { Translation } from 'src/app/components/typography/Translation';
@@ -90,9 +90,16 @@ export const DesktopFeatureNotSupportModal: Component<
         }
 
         const requiredFeature = props.walletsModalState.requiredFeature;
-        const requiredFeatures = requiredFeature
-            ? { [requiredFeature.featureName]: requiredFeature.value }
-            : {};
+
+        const featureNameInCamelCase = requiredFeature
+            ? ((requiredFeature.featureName.charAt(0).toLowerCase() +
+                  requiredFeature.featureName.slice(1)) as keyof RequiredFeatures)
+            : undefined;
+
+        const requiredFeatures: RequiredFeatures =
+            featureNameInCamelCase !== undefined
+                ? { [featureNameInCamelCase]: requiredFeature!.value }
+                : {};
 
         const validInList = checkRequiredWalletFeatures(
             currentWalletUIVar.features,
