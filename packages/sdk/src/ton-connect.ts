@@ -565,9 +565,14 @@ export class TonConnect implements ITonConnect {
 
         this.tracker.trackCreateSubscriptionV2Initiated(this.wallet, data);
 
+        const from = data.from ?? this.account!.address; // TODO: verify if data.from is needed or can be removed in favor of always using this.account!.address
+        const network = data.network ?? this.account!.chain;
+
         const response = await this.provider!.sendRequest(
             createSubscriptionV2Parser.convertToRpcRequest({
                 ...data,
+                from,
+                network,
                 valid_until: data.validUntil,
                 subscription: {
                     ...data.subscription,
@@ -619,9 +624,14 @@ export class TonConnect implements ITonConnect {
 
         this.tracker.trackCancelSubscriptionV2Initiated(this.wallet, data);
 
+        const from = data.from ?? this.account!.address; // TODO: verify if data.from is needed or can be removed in favor of always using this.account!.address
+        const network = data.network ?? this.account!.chain;
+
         const response = await this.provider!.sendRequest(
             cancelSubscriptionV2Parser.convertToRpcRequest({
                 ...data,
+                from,
+                network,
                 valid_until: data.validUntil,
                 extension_address: data.extensionAddress
             }),
