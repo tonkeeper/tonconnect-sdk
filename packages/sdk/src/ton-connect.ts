@@ -2,7 +2,7 @@ import {
     ConnectEventSuccess,
     ConnectItem,
     ConnectRequest,
-    Feature,
+    CreateSubscriptionV2RpcResponseSuccess,
     SendTransactionRpcResponseSuccess,
     SignDataPayload,
     SignDataRpcResponseSuccess,
@@ -30,7 +30,11 @@ import {
 import {
     SendTransactionRequest,
     SendTransactionResponse,
-    SignDataResponse
+    SignDataResponse,
+    CreateSubscriptionV2Request,
+    CreateSubscriptionV2Response,
+    CancelSubscriptionV2Request,
+    CancelSubscriptionV2Response
 } from 'src/models/methods';
 import { ConnectAdditionalRequest } from 'src/models/methods/connect/connect-additional-request';
 import { TonConnectOptions } from 'src/models/ton-connect-options';
@@ -53,13 +57,16 @@ import { WithoutIdDistributive } from 'src/utils/types';
 import {
     checkSendTransactionSupport,
     checkRequiredWalletFeatures,
-    checkSignDataSupport
+    checkSignDataSupport,
+    checkSubscriptionSupport
 } from 'src/utils/feature-support';
 import { callForSuccess } from 'src/utils/call-for-success';
 import { logDebug, logError } from 'src/utils/log';
 import { createAbortController } from 'src/utils/create-abort-controller';
 import { TonConnectTracker } from 'src/tracker/ton-connect-tracker';
 import { tonConnectSdkVersion } from 'src/constants/version';
+import { createSubscriptionV2Parser } from './parsers/create-subscription-v2-parser';
+import { cancelSubscriptionV2Parser } from './parsers/cancel-subscription-v2-parser';
 
 export class TonConnect implements ITonConnect {
     private static readonly walletsList = new WalletsListManager();
@@ -485,7 +492,6 @@ export class TonConnect implements ITonConnect {
     public async signData(
         data: SignDataPayload,
         options?: {
-            onRequestSent?: () => void;
             signal?: AbortSignal;
         }
     ): Promise<SignDataResponse> {
@@ -516,6 +522,140 @@ export class TonConnect implements ITonConnect {
         );
 
         this.tracker.trackDataSigned(this.wallet, data, result);
+
+        return result;
+    }
+
+    // for second subscription version
+    // public async createSubscription(
+    //     data: SubscribeV2Request,
+    //     options: {
+    //         version: 'v3';
+    //         signal?: AbortSignal;
+    //     }
+    // ): Promise<void>;
+    public async createSubscription(
+        data: CreateSubscriptionV2Request,
+        options: {
+            version: 'v2';
+            onRequestSent?: () => void;
+            signal?: AbortSignal;
+        }
+    ): Promise<CreateSubscriptionV2Response> {
+        const abortController = createAbortController(options?.signal);
+        if (abortController.signal.aborted) {
+            throw new TonConnectError('Subscription V2 creation was aborted');
+        }
+
+        this.checkConnection();
+        checkSubscriptionSupport(this.wallet!.device.features);
+
+        const BASE_PERIODS = [604_800, 2_592_000, 2_629_800, 31_557_600] as const;
+
+        const isValidPeriod =
+          Number.isInteger(data.subscription.period) &&
+          data.subscription.period > 0 &&
+          BASE_PERIODS.some(p => data.subscription.period % p === 0);
+
+        if (!isValidPeriod) {
+            throw new TonConnectError(
+                'Subscription period must be a multiple of 604800 (7 days), 2592000 (30 days), 2629800 (calendar month), or 31557600 (calendar year)'
+            );
+        }
+
+        this.tracker.trackCreateSubscriptionV2Initiated(this.wallet, data);
+
+        const from = data.from ?? this.account!.address; // TODO: verify if data.from is needed or can be removed in favor of always using this.account!.address
+        const network = data.network ?? this.account!.chain;
+
+        const response = await this.provider!.sendRequest(
+            createSubscriptionV2Parser.convertToRpcRequest({
+                ...data,
+                from,
+                network,
+                valid_until: data.validUntil,
+                subscription: {
+                    ...data.subscription,
+                    ...(data.subscription.firstChargeDate !== undefined && {
+                        first_charge_date: data.subscription.firstChargeDate
+                    })
+                }
+            }),
+            {
+                onRequestSent: options.onRequestSent,
+                signal: abortController.signal
+            }
+        );
+
+        if (createSubscriptionV2Parser.isError(response)) {
+            this.tracker.trackCreateSubscriptionV2Failed(
+                this.wallet,
+                data,
+                response.error.message,
+                response.error.code
+            );
+            return createSubscriptionV2Parser.parseAndThrowError(response);
+        }
+
+        const result = createSubscriptionV2Parser.convertFromRpcResponse(
+            response as CreateSubscriptionV2RpcResponseSuccess
+        );
+
+        this.tracker.trackCreateSubscriptionV2Completed(this.wallet, data, result);
+
+        return result;
+    }
+
+    public async cancelSubscription(
+        data: CancelSubscriptionV2Request,
+        options: {
+            version: 'v2';
+            onRequestSent?: () => void;
+            signal?: AbortSignal;
+        }
+    ): Promise<CancelSubscriptionV2Response> {
+        const abortController = createAbortController(options?.signal);
+        if (abortController.signal.aborted) {
+            throw new TonConnectError('Subscription V2 cancellation was aborted');
+        }
+
+        this.checkConnection();
+        checkSubscriptionSupport(this.wallet!.device.features);
+
+        this.tracker.trackCancelSubscriptionV2Initiated(this.wallet, data);
+
+        const from = data.from ?? this.account!.address; // TODO: verify if data.from is needed or can be removed in favor of always using this.account!.address
+        const network = data.network ?? this.account!.chain;
+
+        const response = await this.provider!.sendRequest(
+            cancelSubscriptionV2Parser.convertToRpcRequest({
+                ...data,
+                from,
+                network,
+                valid_until: data.validUntil,
+                extension_address: data.extensionAddress
+            }),
+            {
+                onRequestSent: options.onRequestSent,
+                signal: abortController.signal
+            }
+        );
+
+        if (cancelSubscriptionV2Parser.isError(response)) {
+            this.tracker.trackCancelSubscriptionV2Failed(
+                this.wallet,
+                data,
+                response.error.message,
+                response.error.code
+            );
+            return cancelSubscriptionV2Parser.parseAndThrowError(response);
+        }
+
+        const result = cancelSubscriptionV2Parser.convertFromRpcResponse(
+            response as CreateSubscriptionV2RpcResponseSuccess
+        );
+
+        this.tracker.trackCancelSubscriptionV2Completed(this.wallet, data, result);
 
         return result;
     }

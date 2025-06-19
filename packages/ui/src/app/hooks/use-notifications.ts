@@ -26,6 +26,13 @@ const defaultConfig: UseOpenedNotificationsConfig = {
 
 const [latestAction, setLatestAction] = createSignal<Action | null>(null);
 
+const confirmActions: readonly ActionName[] = [
+    'confirm-transaction',
+    'confirm-sign-data',
+    'confirm-create-subscription',
+    'confirm-cancel-subscription'
+] as const;
+
 export function useOpenedNotifications(
     config?: UseOpenedNotificationsConfig
 ): UseOpenedNotifications {
@@ -40,7 +47,7 @@ export function useOpenedNotifications(
             if (!action || !action.showNotification) {
                 // clearAction not work without that code
                 setOpenedNotifications(openedNotifications =>
-                    openedNotifications.filter(n => n.action !== 'confirm-transaction')
+                    openedNotifications.filter(n => !confirmActions.includes(n.action))
                 );
 
                 return;
@@ -51,24 +58,20 @@ export function useOpenedNotifications(
                 return;
             }
 
-            const isConfirmTransactionAction =
-                latestAction()?.name === 'confirm-transaction' &&
-                action.name === 'confirm-transaction';
-
-            const isConfirmSignDataAction =
-                latestAction()?.name === 'confirm-sign-data' && action.name === 'confirm-sign-data';
-
-            if (isConfirmTransactionAction || isConfirmSignDataAction) {
+            // ignore repeat clicks on the same "confirm-*" modal
+            if (
+                latestAction() &&
+                confirmActions.includes(action.name) &&
+                latestAction()!.name === action.name
+            ) {
                 return;
             }
 
             setLatestAction(action);
 
             // cleanup all not confirmed transactions
-            setOpenedNotifications(openedNotifications =>
-                openedNotifications.filter(
-                    n => n.action !== 'confirm-transaction' && n.action !== 'confirm-sign-data'
-                )
+            setOpenedNotifications(notifications =>
+                notifications.filter(n => !confirmActions.includes(n.action))
             );
 
             // create notification

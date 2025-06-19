@@ -92,6 +92,36 @@ export function checkSignDataSupport(
     }
 }
 
+export function checkSubscriptionSupport(features: Feature[]): never | void {
+    const subscriptionFeature = findFeature(features, 'Subscription');
+    if (!subscriptionFeature) {
+        throw new WalletNotSupportFeatureError("Wallet doesn't support Subscription feature.", {
+            cause: {
+                requiredFeature: {
+                    featureName: 'Subscription',
+                    value: { versions: { v2: true } }
+                }
+            }
+        });
+    }
+    if (!subscriptionFeature.versions.v2) {
+        const versionKeys = Object.keys(subscriptionFeature.versions);
+        const errMfg =
+            versionKeys.length === 0
+                ? "Wallet doesn't support Subscription feature."
+                : `Wallet supports Subscription feature, but only versions: ${versionKeys.join(
+                      ', '
+                  )}. Version 2 is required.`;
+
+        throw new WalletNotSupportFeatureError(errMfg, {
+            cause: {
+                requiredFeature: { featureName: 'Subscription', value: { versions: { v2: true } } }
+            }
+        });
+    }
+    return;
+}
+
 export function checkRequiredWalletFeatures(
     features: Feature[],
     walletsRequiredFeatures?: RequiredFeatures
@@ -100,7 +130,7 @@ export function checkRequiredWalletFeatures(
         return true;
     }
 
-    const { sendTransaction, signData } = walletsRequiredFeatures;
+    const { sendTransaction, signData, subscription } = walletsRequiredFeatures;
 
     if (sendTransaction) {
         const feature = findFeature(features, 'SendTransaction');
@@ -122,6 +152,15 @@ export function checkRequiredWalletFeatures(
         if (!checkSignData(feature, signData)) {
             return false;
         }
+    }
+
+    if (subscription) {
+        const feature = findFeature(features, 'Subscription');
+        if (!feature) {
+            return false;
+        }
+
+        return feature.versions.v2;
     }
 
     return true;

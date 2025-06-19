@@ -8,6 +8,14 @@ import {
     DisconnectRpcResponseError,
     DisconnectRpcResponseSuccess
 } from './disconnect-rpc-response';
+import {
+    CreateSubscriptionV2RpcResponseError,
+    CreateSubscriptionV2RpcResponseSuccess
+} from './create-subscription-v2-rpc-response';
+import {
+    CancelSubscriptionV2RpcResponseError,
+    CancelSubscriptionV2RpcResponseSuccess
+} from './cancel-subscription-v2-rpc-response';
 
 export type RpcResponses = {
     sendTransaction: {
@@ -23,6 +31,16 @@ export type RpcResponses = {
     disconnect: {
         error: DisconnectRpcResponseError;
         success: DisconnectRpcResponseSuccess;
+    };
+
+    createSubscriptionV2: {
+        error: CreateSubscriptionV2RpcResponseError;
+        success: CreateSubscriptionV2RpcResponseSuccess;
+    };
+
+    cancelSubscriptionV2: {
+        error: CancelSubscriptionV2RpcResponseError;
+        success: CancelSubscriptionV2RpcResponseSuccess;
     };
 };
 

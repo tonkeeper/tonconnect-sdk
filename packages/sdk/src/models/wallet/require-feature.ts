@@ -9,6 +9,7 @@ export type RequiredFeatures = {
      */
     sendTransaction?: RequiredSendTransactionFeature;
     signData?: RequiredSignDataFeature;
+    subscription?: RequiredSubscriptionFeature;
 };
 
 
@@ -35,4 +36,14 @@ export type RequiredSignDataFeature = {
      * Supported sign data types.
      */
     types: SignDataType[];
+};
+
+
+/**
+ * Required features for the subscription feature.
+ */
+export type RequiredSubscriptionFeature = {
+    versions?: {
+        v2?: boolean;
+    };
 };

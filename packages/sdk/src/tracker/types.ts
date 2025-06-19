@@ -3,9 +3,24 @@ import {
     ConnectItem,
     SEND_TRANSACTION_ERROR_CODES,
     SIGN_DATA_ERROR_CODES,
+    CREATE_SUBSCRIPTION_V2_ERROR_CODES,
+    CANCEL_SUBSCRIPTION_V2_ERROR_CODES,
     SignDataPayload
 } from '@tonconnect/protocol';
-import { SendTransactionRequest, SendTransactionResponse, SignDataResponse, Wallet } from 'src/models';
+import {
+    CancelSubscriptionV2Request,
+    CancelSubscriptionV2Response,
+    SendTransactionRequest,
+    SendTransactionResponse,
+    SignDataResponse,
+    Wallet
+} from 'src/models';
+import {
+    CreateSubscriptionV2Request,
+    CreateSubscriptionV2Response
+} from 'src/models/methods/create-subscription-v2';
+
+//#region Version events
 
 /**
  * Request TON Connect UI version.
@@ -80,6 +95,10 @@ export function createVersionInfo(version: Version): Version {
         ton_connect_ui_lib: version.ton_connect_ui_lib
     };
 }
+
+//#endregion Version events
+
+//#region Connection flow
 
 /**
  * Requested authentication type: 'ton_addr' or 'ton_proof'.
@@ -349,6 +368,10 @@ export type ConnectionRestoringEvent =
     | ConnectionRestoringCompletedEvent
     | ConnectionRestoringErrorEvent;
 
+//#endregion Connection flow
+
+//#region Transaction signing flow
+
 /**
  * Transaction message.
  */
@@ -521,6 +544,10 @@ export type TransactionSigningEvent =
     | TransactionSignedEvent
     | TransactionSigningFailedEvent;
 
+//#endregion Transaction signing flow
+
+//#region Data signing flow
+
 export type DataSentForSignatureEvent = {
     type: 'sign-data-request-initiated';
     data: SignDataPayload;
@@ -585,10 +612,188 @@ export function createDataSigningFailedEvent(
     };
 }
 
-export type DataSigningEvent =
-    | DataSentForSignatureEvent
-    | DataSignedEvent
-    | DataSigningFailedEvent;
+export type DataSigningEvent = DataSentForSignatureEvent | DataSignedEvent | DataSigningFailedEvent;
+
+//#endregion Data signing flow
+
+//#region Subscription creation flow
+
+/**
+ * Create event for subscription creation initiated. 
+ */
+export type CreateSubscriptionV2InitiatedEvent = {
+    type: 'create-subscription-v2-initiated';
+    data: CreateSubscriptionV2Request;
+} & ConnectionInfo;
+
+export function createSubscriptionV2CreationInitiatedEvent(
+    version: Version,
+    wallet: Wallet | null,
+    data: CreateSubscriptionV2Request
+): CreateSubscriptionV2InitiatedEvent {
+    return {
+        type: 'create-subscription-v2-initiated',
+        data,
+        ...createConnectionInfo(version, wallet)
+    };
+}
+
+/**
+ * Create event for subscription creation completed.
+ */
+export type CreateSubscriptionV2CompletedEvent = {
+    type: 'create-subscription-v2-completed';
+    data: CreateSubscriptionV2Request;
+    result: CreateSubscriptionV2Response;
+    is_success: true;
+} & ConnectionInfo;
+
+export function createSubscriptionV2CreationCompletedEvent(
+    version: Version,
+    wallet: Wallet | null,
+    data: CreateSubscriptionV2Request,
+    result: CreateSubscriptionV2Response
+): CreateSubscriptionV2CompletedEvent {
+    return {
+        type: 'create-subscription-v2-completed',
+        is_success: true,
+        data,
+        result,
+        ...createConnectionInfo(version, wallet)
+    };
+}
+
+/**
+ * Create event for subscription creation failed.
+ */
+export type CreateSubscriptionV2FailedEvent = {
+    type: 'create-subscription-v2-failed';
+    data: CreateSubscriptionV2Request;
+    is_success: false;
+    error_message: string;
+    error_code: CREATE_SUBSCRIPTION_V2_ERROR_CODES | null;
+} & ConnectionInfo;
+
+export function createSubscriptionV2CreationFailedEvent(
+    version: Version,
+    wallet: Wallet | null,
+    data: CreateSubscriptionV2Request,
+    errorMessage: string,
+    errorCode: CREATE_SUBSCRIPTION_V2_ERROR_CODES | void
+): CreateSubscriptionV2FailedEvent {
+    return {
+        type: 'create-subscription-v2-failed',
+        is_success: false,
+        error_message: errorMessage,
+        error_code: errorCode ?? null,
+        data,
+        ...createConnectionInfo(version, wallet)
+    };
+}
+
+export type CreateSubscriptionV2Event =
+    | CreateSubscriptionV2InitiatedEvent
+    | CreateSubscriptionV2CompletedEvent
+    | CreateSubscriptionV2FailedEvent;
+
+//#endregion Subscription creation flow
+
+//#region Subscription cancellation flow
+
+/**
+ * Subscription cancellation inited event.
+ */
+export type CancelSubscriptionV2InitiatedEvent = {
+    type: 'cancel-subscription-v2-initiated';
+    data: CancelSubscriptionV2Request;
+} & ConnectionInfo;
+
+/**
+ * Create subscription cancellation event initiated event.
+ */
+export function createSubscriptionV2CancellationInitiatedEvent(
+    version: Version,
+    wallet: Wallet | null,
+    data: CancelSubscriptionV2Request
+): CancelSubscriptionV2InitiatedEvent {
+    return {
+        type: 'cancel-subscription-v2-initiated',
+        data,
+        ...createConnectionInfo(version, wallet)
+    };
+}
+
+/**
+ * Subscription canceled (success) event.
+ */
+export type CancelSubscriptionV2CompletedEvent = {
+    type: 'cancel-subscription-v2-completed';
+    is_success: true;
+    data: CancelSubscriptionV2Request;
+    result: CancelSubscriptionV2Response;
+} & ConnectionInfo;
+
+/**
+ * Create subscription canceled event.
+ */
+export function createSubscriptionV2CancellationCompletedEvent(
+    version: Version,
+    wallet: Wallet | null,
+    data: CancelSubscriptionV2Request,
+    result: CancelSubscriptionV2Response
+): CancelSubscriptionV2CompletedEvent {
+    return {
+        type: 'cancel-subscription-v2-completed',
+        data,
+        result,
+        is_success: true,
+        ...createConnectionInfo(version, wallet)
+    };
+}
+
+/**
+ * Subscription cancellation failed event.
+ */
+export type CancelSubscriptionV2FailedEvent = {
+    type: 'cancel-subscription-v2-failed';
+    data: CancelSubscriptionV2Request;
+    is_success: false;
+    error_message: string;
+    error_code: CANCEL_SUBSCRIPTION_V2_ERROR_CODES | null;
+} & ConnectionInfo;
+
+/**
+ * Create subscription cancellation failed event.
+ */
+export function createSubscriptionV2CancellationFailedEvent(
+    version: Version,
+    wallet: Wallet | null,
+    data: CancelSubscriptionV2Request,
+    errorMessage: string,
+    errorCode: CANCEL_SUBSCRIPTION_V2_ERROR_CODES | void
+): CancelSubscriptionV2FailedEvent {
+    return {
+        type: 'cancel-subscription-v2-failed',
+        data,
+        is_success: false,
+        error_message: errorMessage,
+        error_code: errorCode ?? null,
+        ...createConnectionInfo(version, wallet)
+    };
+}
+
+/**
+ * Cancel subscription events.
+ */
+
+export type CancelSubscriptionV2Event =
+    | CancelSubscriptionV2InitiatedEvent
+    | CancelSubscriptionV2CompletedEvent
+    | CancelSubscriptionV2FailedEvent;
+
+//#endregion Subscription cancellation flow
+
+//#region Disconnection event
 
 /**
  * Disconnect event when a user initiates a disconnection.
@@ -623,6 +828,8 @@ export function createDisconnectionEvent(
     };
 }
 
+// #endregion Disconnection event
+
 /**
  * User action events.
  */
@@ -632,7 +839,9 @@ export type SdkActionEvent =
     | ConnectionRestoringEvent
     | DisconnectionEvent
     | TransactionSigningEvent
-    | DataSigningEvent;
+    | DataSigningEvent
+    | CreateSubscriptionV2Event
+    | CancelSubscriptionV2Event;
 
 /**
  * Parameters without version field.

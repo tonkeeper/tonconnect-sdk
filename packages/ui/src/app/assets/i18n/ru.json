@@ -37,6 +37,22 @@
     },
     "signDataCanceled": {
       "header": "Подпись данных отменена"
+    },
+    "createSubscriptionInitiated": {
+      "header": "Создание подписки инициировано",
+      "text": "Подписка будет создана в течение нескольких секунд."
+    },
+    "createSubscriptionCanceled": {
+      "header": "Создание подписки отменено",
+      "text": "Ваш аккаунт останется без изменений."
+    },
+    "cancelSubscriptionInitiated": {
+      "header": "Отмена подписки инициирована",
+      "text": "Подписка будет отменена в течение нескольких секунд."
+    },
+    "cancelSubscriptionCanceled": {
+      "header": "Отмена подписки отменена",
+      "text": "Ваш аккаунт останется без изменений."
     }
   },
   "walletItem": {
@@ -140,9 +156,19 @@
       "header": "Подпишите данные в {{ name }}",
       "text": "Это займет пару секунд."
     },
+    "confirmCancelSubscription": {
+      "header": "Подтвердите отмену подписки в {{ name }}",
+      "text": "Это займёт всего пару секунд."
+    },
+    "confirmCreateSubscription": {
+      "header": "Подтвердите создание подписки в {{ name }}",
+      "text": "Это займёт всего пару секунд."
+    },
     "transactionSent": "$notifications.transactionSent",
     "transactionCanceled": "$notifications.transactionCanceled",
     "dataSigned": "$notifications.dataSigned",
-    "signDataCanceled": "$notifications.signDataCanceled"
+    "signDataCanceled": "$notifications.signDataCanceled",
+    "createSubscriptionInitiated": "$notifications.createSubscriptionInitiated",
+    "createSubscriptionCanceled": "$notifications.createSubscriptionCanceled"
   }
 }
