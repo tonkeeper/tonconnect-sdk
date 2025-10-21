@@ -23,4 +23,13 @@ export interface Wallet {
     connectItems?: {
         tonProof?: TonProofItemReply;
     };
+
+    /**
+     * Runtime config of the wallet.
+     */
+    runtimeConfig: RuntimeConfig | null;
+}
+
+export interface RuntimeConfig {
+    batteryExcessAddresses: string[];
 }

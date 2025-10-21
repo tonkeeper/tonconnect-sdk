@@ -366,6 +366,18 @@ export type TransactionMessage = {
      * Transfer amount.
      */
     amount: string | null;
+    /**
+     * Contract specific data to add to the transaction.
+     */
+    stateInit: string | null;
+    /**
+     * Contract specific data to add to the transaction.
+     */
+    payload: string | null;
+    /**
+     * Extra currencies to send.
+     */
+    extra_currency: { [k: number]: string } | null;
 };
 
 /**
@@ -384,6 +396,18 @@ export type TransactionInfo = {
      * Transaction messages.
      */
     messages: TransactionMessage[];
+    /**
+     * Transaction messages variants.
+     */
+    messagesVariants: {
+        gasless: {
+            messages: TransactionMessage[];
+            options: { asset: string } | null;
+        } | null;
+        battery: {
+            messages: TransactionMessage[];
+        } | null;
+    } | null;
 };
 
 function createTransactionInfo(
@@ -395,8 +419,42 @@ function createTransactionInfo(
         from: transaction.from ?? wallet?.account?.address ?? null,
         messages: transaction.messages.map(message => ({
             address: message.address ?? null,
-            amount: message.amount ?? null
-        }))
+            amount: message.amount ?? null,
+            stateInit: message.stateInit ?? null,
+            payload: message.payload ?? null,
+            extra_currency: message.extraCurrency ?? null
+        })),
+        messagesVariants: transaction.messagesVariants
+            ? {
+                  gasless: transaction.messagesVariants.gasless
+                      ? {
+                            messages: transaction.messagesVariants.gasless.messages.map(
+                                message => ({
+                                    address: message.address ?? null,
+                                    amount: message.amount ?? null,
+                                    stateInit: message.stateInit ?? null,
+                                    payload: message.payload ?? null,
+                                    extra_currency: message.extraCurrency ?? null
+                                })
+                            ),
+                            options: transaction.messagesVariants.gasless.options ?? null
+                        }
+                      : null,
+                  battery: transaction.messagesVariants.battery
+                      ? {
+                            messages: transaction.messagesVariants.battery.messages.map(
+                                message => ({
+                                    address: message.address ?? null,
+                                    amount: message.amount ?? null,
+                                    stateInit: message.stateInit ?? null,
+                                    payload: message.payload ?? null,
+                                    extra_currency: message.extraCurrency ?? null
+                                })
+                            )
+                        }
+                      : null
+              }
+            : null
     };
 }
 
@@ -445,6 +503,10 @@ export type TransactionSignedEvent = {
      * Signed transaction.
      */
     signed_transaction: string;
+    /**
+     * Type of signed transaction.
+     */
+    signed_transaction_type: SendTransactionResponse['type'];
 } & ConnectionInfo &
     TransactionInfo;
 
@@ -465,6 +527,7 @@ export function createTransactionSignedEvent(
         type: 'transaction-signed',
         is_success: true,
         signed_transaction: signedTransaction.boc,
+        signed_transaction_type: signedTransaction.type,
         ...createConnectionInfo(version, wallet),
         ...createTransactionInfo(wallet, transaction)
     };

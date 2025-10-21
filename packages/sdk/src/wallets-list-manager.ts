@@ -132,6 +132,7 @@ export class WalletsListManager {
                 appName: walletConfigDTO.app_name,
                 imageUrl: walletConfigDTO.image,
                 aboutUrl: walletConfigDTO.about_url,
+                runtimeConfigUrl: walletConfigDTO.runtime_config_url,
                 tondns: walletConfigDTO.tondns,
                 platforms: walletConfigDTO.platforms,
                 features: walletConfigDTO.features

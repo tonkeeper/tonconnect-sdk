@@ -1,5 +1,32 @@
 import { CHAIN } from '@tonconnect/protocol';
 
+export interface Message {
+    /**
+     * Receiver's address.
+     */
+    address: string;
+
+    /**
+     * Amount to send in nanoTon.
+     */
+    amount: string;
+
+    /**
+     * Contract specific data to add to the transaction.
+     */
+    stateInit?: string;
+
+    /**
+     * Contract specific data to add to the transaction.
+     */
+    payload?: string;
+
+    /**
+     * Extra currencies to send.
+     */
+    extraCurrency?: { [k: number]: string };
+}
+
 export interface SendTransactionRequest {
     /**
      * Sending transaction deadline in unix epoch seconds.
@@ -17,32 +44,23 @@ export interface SendTransactionRequest {
     from?: string;
 
     /**
-     * Messages to send: min is 1, max is 4.
+     * Messages to send: min is 1, max is 255.
      */
-    messages: {
-        /**
-         * Receiver's address.
-         */
-        address: string;
+    messages: Message[];
 
-        /**
-         * Amount to send in nanoTon.
-         */
-        amount: string;
-
-        /**
-         * Contract specific data to add to the transaction.
-         */
-        stateInit?: string;
-
-        /**
-         * Contract specific data to add to the transaction.
-         */
-        payload?: string;
-
-        /**
-         * Extra currencies to send.
-         */
-        extraCurrency?: { [k: number]: string };
-    }[];
+    /**
+     * Messages variants to send: min is 1, max is 255.
+     */
+    messagesVariants?: {
+        gasless?: {
+            messages: Message[];
+            options?: { asset: string };
+        };
+        battery?: {
+            messages: Message[];
+        };
+        custodial?: {
+            messages: Message[];
+        };
+    };
 }

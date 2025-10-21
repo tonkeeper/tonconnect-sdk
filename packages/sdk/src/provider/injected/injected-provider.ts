@@ -62,6 +62,7 @@ export class InjectedProvider<T extends string = string> implements InternalProv
             name: wallet.tonconnect.walletInfo.name,
             appName: wallet.tonconnect.walletInfo.app_name,
             aboutUrl: wallet.tonconnect.walletInfo.about_url,
+            runtimeConfigUrl: wallet.tonconnect.walletInfo.runtime_config_url,
             imageUrl: wallet.tonconnect.walletInfo.image,
             tondns: wallet.tonconnect.walletInfo.tondns,
             jsBridgeKey,
