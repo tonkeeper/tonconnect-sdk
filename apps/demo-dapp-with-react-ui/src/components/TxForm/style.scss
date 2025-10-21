@@ -3,7 +3,7 @@
   display: flex;
   width: 100%;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
   padding: 20px;
   align-items: center;
 
@@ -13,7 +13,34 @@
     font-size: 28px;
   }
 
-  > div:nth-child(2) {
+  .template-buttons {
+    display: flex;
+    gap: 8px;
+    align-self: flex-start;
+
+    button {
+      border: none;
+      padding: 6px 12px;
+      border-radius: 15px;
+      cursor: pointer;
+      background-color: rgba(102, 170, 238, 0.7);
+      color: white;
+      font-size: 14px;
+      line-height: 20px;
+      transition: all 0.1s ease-in-out;
+
+      &:hover {
+        transform: scale(1.03);
+        background-color: rgba(102, 170, 238, 0.85);
+      }
+
+      &:active {
+        transform: scale(0.97);
+      }
+    }
+  }
+
+  > div:nth-child(3) {
     width: 100%;
 
     span {
