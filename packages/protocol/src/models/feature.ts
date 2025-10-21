@@ -2,10 +2,16 @@ export type Feature = SendTransactionFeatureDeprecated | SendTransactionFeature 
 export type FeatureName = Exclude<Feature, 'SendTransaction'>['name'];
 
 export type SendTransactionFeatureDeprecated = 'SendTransaction';
+
+export type MessageVariantType = 'gasless' | 'battery' | 'custodial';
+
 export type SendTransactionFeature = {
     name: 'SendTransaction';
     maxMessages: number;
     extraCurrencySupported?: boolean;
+    messageVariants?: {
+        [K in MessageVariantType]?: boolean;
+    };
 };
 
 export type SignDataType = 'text' | 'binary' | 'cell';

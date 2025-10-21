@@ -7,6 +7,7 @@ export {
     FeatureName,
     SendTransactionFeatureDeprecated,
     SendTransactionFeature,
+    MessageVariantType,
     SignDataType,
     SignDataFeature
 } from './feature';
