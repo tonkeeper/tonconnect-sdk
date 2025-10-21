@@ -33,6 +33,7 @@ export const FALLBACK_WALLETS_LIST: WalletInfoDTO[] = [
         tondns: 'tonkeeper.ton',
         about_url: 'https://tonkeeper.com',
         universal_url: 'https://app.tonkeeper.com/ton-connect',
+        runtime_config_url: 'https://bridge.tonapi.io/ton-connect/runtime_config.json',
         deepLink: 'tonkeeper-tc://',
         bridge: [
             {
@@ -44,12 +45,17 @@ export const FALLBACK_WALLETS_LIST: WalletInfoDTO[] = [
                 key: 'tonkeeper'
             }
         ],
-        platforms: ['ios', 'android', 'chrome', 'firefox', 'macos'],
+        platforms: ['ios', 'android', 'chrome', 'firefox', 'macos', 'windows', 'linux'],
         features: [
             {
                 name: 'SendTransaction',
                 maxMessages: 255,
-                extraCurrencySupported: true
+                extraCurrencySupported: true,
+                messageVariants: {
+                    battery: true,
+                    gasless: true,
+                    custodial: true
+                }
             },
             {
                 name: 'SignData',

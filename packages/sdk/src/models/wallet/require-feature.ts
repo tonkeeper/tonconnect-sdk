@@ -24,6 +24,15 @@ export type RequiredSendTransactionFeature = {
      * Whether extra currency is required.
      */
     extraCurrencyRequired?: boolean;
+
+    /**
+     * Message variants.
+     */
+    messageVariants?: {
+        gasless?: boolean;
+        battery?: boolean;
+        custodial?: boolean;
+    };
 };
 
 /**

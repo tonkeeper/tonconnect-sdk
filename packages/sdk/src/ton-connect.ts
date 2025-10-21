@@ -3,12 +3,15 @@ import {
     ConnectEventSuccess,
     ConnectItem,
     ConnectRequest,
+    DeviceInfo,
+    RpcMethod,
     SendTransactionRpcResponseSuccess,
     SignDataPayload,
     SignDataRpcResponseSuccess,
     TonAddressItemReply,
     TonProofItemReply,
-    WalletEvent
+    WalletEvent,
+    WalletResponse
 } from '@tonconnect/protocol';
 import { DappMetadataError } from 'src/errors/dapp/dapp-metadata.error';
 import { ManifestContentErrorError } from 'src/errors/protocol/events/connect/manifest-content-error.error';
@@ -49,11 +52,13 @@ import { DefaultStorage } from 'src/storage/default-storage';
 import { ITonConnect } from 'src/ton-connect.interface';
 import { getDocument, getWebPageManifest } from 'src/utils/web-api';
 import { WalletsListManager } from 'src/wallets-list-manager';
-import { WithoutIdDistributive } from 'src/utils/types';
+import { WithoutId, WithoutIdDistributive } from 'src/utils/types';
 import {
     checkSendTransactionSupport,
     checkRequiredWalletFeatures,
-    checkSignDataSupport
+    checkSignDataSupport,
+    checkMessageVariantsSupport,
+    MessageVariantsSupport
 } from 'src/utils/feature-support';
 import { callForSuccess } from 'src/utils/call-for-success';
 import { logDebug, logError } from 'src/utils/log';
@@ -68,6 +73,7 @@ import {
 } from './validation/schemas';
 import { isQaModeEnabled } from './utils/qa-mode';
 import { normalizeBase64 } from './utils/base64';
+import { RuntimeConfig } from './models/wallet/wallet';
 
 export class TonConnect implements ITonConnect {
     private static readonly walletsList = new WalletsListManager();
@@ -392,6 +398,14 @@ export class TonConnect implements ITonConnect {
 
                 abortController.signal.removeEventListener('abort', onAbortRestore);
                 if (this.connected) {
+                    if (!this.wallet) {
+                        throw new Error('Wallet is not connected');
+                    }
+
+                    const runtimeConfig = await this.getRuntimeConfig(this.wallet.device);
+
+                    this.wallet = { ...this.wallet, runtimeConfig };
+
                     this.tracker.trackConnectionRestoringCompleted(this.wallet);
                 } else {
                     this.tracker.trackConnectionRestoringError('Connection restoring failed');
@@ -438,28 +452,9 @@ export class TonConnect implements ITonConnect {
             | (() => void)
     ): Promise<SendTransactionResponse> {
         // TODO: remove deprecated method
-        const options: {
-            onRequestSent?: () => void;
-            signal?: AbortSignal;
-        } = {};
-        if (typeof optionsOrOnRequestSent === 'function') {
-            options.onRequestSent = optionsOrOnRequestSent;
-        } else {
-            options.onRequestSent = optionsOrOnRequestSent?.onRequestSent;
-            options.signal = optionsOrOnRequestSent?.signal;
-        }
+        const options = this.normalizeSendTransactionOptions(optionsOrOnRequestSent);
 
-        // Validate transaction
-        const validationError = validateSendTransactionRequest(transaction);
-        if (validationError) {
-            if (isQaModeEnabled()) {
-                console.error('SendTransactionRequest validation failed: ' + validationError);
-            } else {
-                throw new TonConnectError(
-                    'SendTransactionRequest validation failed: ' + validationError
-                );
-            }
-        }
+        this.validateSendTransactionRequest(transaction);
 
         const abortController = createAbortController(options?.signal);
         if (abortController.signal.aborted) {
@@ -468,52 +463,27 @@ export class TonConnect implements ITonConnect {
 
         this.checkConnection();
 
-        const requiredMessagesNumber = transaction.messages.length;
-        const requireExtraCurrencies = transaction.messages.some(
-            m => m.extraCurrency && Object.keys(m.extraCurrency).length > 0
+        const txData = this.prepareTransactionData(transaction);
+
+        // Check critical features (messages number, extra currencies)
+        checkSendTransactionSupport(this.wallet!.device.features, txData);
+
+        // Check which message variants are supported (non-blocking)
+        const supportedVariants = checkMessageVariantsSupport(
+            this.wallet!.device.features,
+            txData.requiredMessageVariants
         );
-        checkSendTransactionSupport(this.wallet!.device.features, {
-            requiredMessagesNumber,
-            requireExtraCurrencies
-        });
 
         this.tracker.trackTransactionSentForSignature(this.wallet, transaction);
 
-        const { validUntil, messages, ...tx } = transaction;
-        const from = transaction.from || this.account!.address;
-        const network = transaction.network || this.account!.chain;
+        const rpcRequest = this.buildTransactionRpcRequest(transaction, supportedVariants);
 
-        const response = await this.provider!.sendRequest(
-            sendTransactionParser.convertToRpcRequest({
-                ...tx,
-                from,
-                network,
-                valid_until: validUntil,
-                messages: messages.map(({ extraCurrency, payload, stateInit, ...msg }) => ({
-                    ...msg,
-                    payload: normalizeBase64(payload),
-                    stateInit: normalizeBase64(stateInit),
-                    extra_currency: extraCurrency
-                }))
-            }),
-            { onRequestSent: options.onRequestSent, signal: abortController.signal }
-        );
+        const response = await this.provider!.sendRequest(rpcRequest, {
+            onRequestSent: options.onRequestSent,
+            signal: abortController.signal
+        });
 
-        if (sendTransactionParser.isError(response)) {
-            this.tracker.trackTransactionSigningFailed(
-                this.wallet,
-                transaction,
-                response.error.message,
-                response.error.code
-            );
-            return sendTransactionParser.parseAndThrowError(response);
-        }
-
-        const result = sendTransactionParser.convertFromRpcResponse(
-            response as SendTransactionRpcResponseSuccess
-        );
-        this.tracker.trackTransactionSigned(this.wallet, transaction, result);
-        return result;
+        return this.processTransactionResponse(response, transaction);
     }
 
     public async signData(
@@ -697,7 +667,7 @@ export class TonConnect implements ITonConnect {
         }
     }
 
-    private onWalletConnected(connectEvent: ConnectEventSuccess['payload']): void {
+    private async onWalletConnected(connectEvent: ConnectEventSuccess['payload']): Promise<void> {
         const tonAccountItem: TonAddressItemReply | undefined = connectEvent.items.find(
             item => item.name === 'ton_addr'
         ) as TonAddressItemReply | undefined;
@@ -726,6 +696,8 @@ export class TonConnect implements ITonConnect {
             return;
         }
 
+        const runtimeConfig = await this.getRuntimeConfig(connectEvent.device);
+
         const wallet: Wallet = {
             device: connectEvent.device,
             provider: this.provider!.type,
@@ -734,7 +706,8 @@ export class TonConnect implements ITonConnect {
                 chain: tonAccountItem.network,
                 walletStateInit: tonAccountItem.walletStateInit,
                 publicKey: tonAccountItem.publicKey
-            }
+            },
+            runtimeConfig
         };
 
         if (tonProofItem) {
@@ -836,5 +809,171 @@ export class TonConnect implements ITonConnect {
             manifestUrl: this.dappSettings.manifestUrl,
             items
         };
+    }
+
+    private async getRuntimeConfig(deviceInfo: DeviceInfo): Promise<RuntimeConfig | null> {
+        const walletInfo = await this.walletsList.getWallets();
+        const connectedWalletName = deviceInfo.appName.toLowerCase();
+
+        const wallet = walletInfo.find(w => w.name.toLowerCase() === connectedWalletName);
+
+        if (!wallet) {
+            logError(`Wallet (${connectedWalletName}) for fetch runtime config not found`);
+            return null;
+        }
+
+        if (!wallet.runtimeConfigUrl) {
+            return null;
+        }
+
+        const response = await fetch(wallet.runtimeConfigUrl)
+            .then(async r => (await r.json()) as { excess_addresses: string[] })
+            .then(r => ({ batteryExcessAddresses: r.excess_addresses }) as RuntimeConfig)
+            .catch(() => null);
+
+        return response;
+    }
+
+    private normalizeMessage(msg: SendTransactionRequest['messages'][0]) {
+        const { extraCurrency, payload, stateInit, ...rest } = msg;
+        return {
+            ...rest,
+            payload: normalizeBase64(payload),
+            stateInit: normalizeBase64(stateInit),
+            extra_currency: extraCurrency
+        };
+    }
+
+    private buildMessageVariantsForSending(
+        messagesVariants: SendTransactionRequest['messagesVariants'],
+        supportedVariants: MessageVariantsSupport
+    ): NonNullable<SendTransactionRequest['messagesVariants']> | undefined {
+        if (!messagesVariants) {
+            return undefined;
+        }
+
+        const result: Partial<NonNullable<SendTransactionRequest['messagesVariants']>> = {};
+
+        if (supportedVariants.gasless && messagesVariants.gasless?.messages?.length) {
+            result.gasless = {
+                messages: messagesVariants.gasless.messages.map(msg => this.normalizeMessage(msg)),
+                options: messagesVariants.gasless.options
+            };
+        }
+
+        if (supportedVariants.battery && messagesVariants.battery?.messages?.length) {
+            result.battery = {
+                messages: messagesVariants.battery.messages.map(msg => this.normalizeMessage(msg))
+            };
+        }
+
+        if (supportedVariants.custodial && messagesVariants.custodial?.messages?.length) {
+            result.custodial = {
+                messages: messagesVariants.custodial.messages.map(msg => this.normalizeMessage(msg))
+            };
+        }
+
+        return Object.keys(result).length > 0 ? result : undefined;
+    }
+
+    private normalizeSendTransactionOptions(
+        optionsOrOnRequestSent?:
+            | {
+                  onRequestSent?: () => void;
+                  signal?: AbortSignal;
+              }
+            | (() => void)
+    ): { onRequestSent?: () => void; signal?: AbortSignal } {
+        const options: { onRequestSent?: () => void; signal?: AbortSignal } = {};
+        if (typeof optionsOrOnRequestSent === 'function') {
+            options.onRequestSent = optionsOrOnRequestSent;
+        } else if (optionsOrOnRequestSent) {
+            options.onRequestSent = optionsOrOnRequestSent.onRequestSent;
+            options.signal = optionsOrOnRequestSent.signal;
+        }
+        return options;
+    }
+
+    private validateSendTransactionRequest(transaction: SendTransactionRequest): void {
+        const validationError = validateSendTransactionRequest(transaction);
+        if (!validationError) {
+            return;
+        }
+
+        if (isQaModeEnabled()) {
+            console.error('SendTransactionRequest validation failed: ' + validationError);
+        } else {
+            throw new TonConnectError(
+                'SendTransactionRequest validation failed: ' + validationError
+            );
+        }
+    }
+
+    // eslint-disable-next-line
+    private prepareTransactionData(transaction: SendTransactionRequest) {
+        const requiredMessagesNumber = Math.max(
+            transaction.messagesVariants?.gasless?.messages?.length || 0,
+            transaction.messagesVariants?.battery?.messages?.length || 0,
+            transaction.messagesVariants?.custodial?.messages?.length || 0,
+            transaction.messages.length
+        );
+
+        const requireExtraCurrencies = [
+            ...(transaction.messagesVariants?.gasless?.messages || []),
+            ...(transaction.messagesVariants?.battery?.messages || []),
+            ...(transaction.messagesVariants?.custodial?.messages || [])
+        ].some(m => m.extraCurrency && Object.keys(m.extraCurrency).length > 0);
+
+        const requiredMessageVariants = {
+            gasless: !!transaction.messagesVariants?.gasless?.messages?.length,
+            battery: !!transaction.messagesVariants?.battery?.messages?.length,
+            custodial: !!transaction.messagesVariants?.custodial?.messages?.length
+        };
+
+        return { requiredMessagesNumber, requireExtraCurrencies, requiredMessageVariants };
+    }
+
+    private buildTransactionRpcRequest(
+        transaction: SendTransactionRequest,
+        supportedVariants: MessageVariantsSupport
+    ) {
+        const { validUntil, messages, messagesVariants, ...tx } = transaction;
+        const from = transaction.from || this.account!.address;
+        const network = transaction.network || this.account!.chain;
+
+        const messageVariantsToSend = this.buildMessageVariantsForSending(
+            messagesVariants,
+            supportedVariants
+        );
+
+        return sendTransactionParser.convertToRpcRequest({
+            ...tx,
+            from,
+            network,
+            valid_until: validUntil,
+            messages: messages.map(msg => this.normalizeMessage(msg)),
+            ...(messageVariantsToSend && { messagesVariants: messageVariantsToSend })
+        });
+    }
+
+    private processTransactionResponse(
+        response: WithoutId<WalletResponse<RpcMethod>>,
+        transaction: SendTransactionRequest
+    ): SendTransactionResponse {
+        if (sendTransactionParser.isError(response)) {
+            this.tracker.trackTransactionSigningFailed(
+                this.wallet,
+                transaction,
+                response.error.message,
+                response.error.code
+            );
+            return sendTransactionParser.parseAndThrowError(response);
+        }
+
+        const result = sendTransactionParser.convertFromRpcResponse(
+            response as SendTransactionRpcResponseSuccess
+        );
+        this.tracker.trackTransactionSigned(this.wallet, transaction, result);
+        return result;
     }
 }

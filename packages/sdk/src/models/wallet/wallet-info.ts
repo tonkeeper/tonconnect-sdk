@@ -30,6 +30,11 @@ export interface WalletInfoBase {
     aboutUrl: string;
 
     /**
+     * Url to the runtime config of the wallet.
+     */
+    runtimeConfigUrl?: string;
+
+    /**
      * List of features supported by the wallet.
      */
     features?: Feature[];
@@ -126,6 +131,7 @@ export interface WalletInfoDTO {
     tondns?: string;
     about_url: string;
     universal_url?: string;
+    runtime_config_url?: string;
     features?: Feature[];
     platforms: (
         | 'ios'

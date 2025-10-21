@@ -69,6 +69,7 @@ export {
     FeatureName,
     SendTransactionFeature,
     SendTransactionFeatureDeprecated,
+    MessageVariantType,
     SignDataFeature,
     SignDataType,
     SignDataPayload,
@@ -87,6 +88,7 @@ export {
     SIGN_DATA_ERROR_CODES
 } from '@tonconnect/protocol';
 export { toUserFriendlyAddress } from './utils/address';
-export { checkRequiredWalletFeatures } from './utils/feature-support';
+export { checkRequiredWalletFeatures, checkMessageVariantsSupport } from './utils/feature-support';
+export type { MessageVariantsSupport } from './utils/feature-support';
 export { isTelegramUrl, encodeTelegramUrlParameters } from './utils/url';
 export { enableQaMode, isQaModeEnabled } from './utils/qa-mode';

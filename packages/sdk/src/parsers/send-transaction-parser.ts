@@ -12,7 +12,25 @@ import { RpcParser } from 'src/parsers/rpc-parser';
 import { WithoutId } from 'src/utils/types';
 
 type ArrayElement<T> = T extends Array<infer U> ? U : never;
-type Message = ArrayElement<SendTransactionRequest['messages']>;
+type Message = ArrayElement<NonNullable<SendTransactionRequest['messages']>>;
+
+type RpcMessage = Omit<Message, 'extraCurrency'> & {
+    extra_currency?: Message['extraCurrency'];
+};
+
+type RpcMessagesVariants = {
+    gasless?: { messages: Array<RpcMessage>; options?: { asset: boolean } };
+    battery?: { messages: Array<RpcMessage> };
+};
+
+type RpcRequestPayload = Omit<
+    SendTransactionRequest,
+    'validUntil' | 'messages' | 'messagesVariants'
+> & {
+    valid_until: number;
+    messages: Array<RpcMessage>;
+    messages_variants?: RpcMessagesVariants;
+};
 
 const sendTransactionErrors: Partial<Record<CONNECT_EVENT_ERROR_CODES, typeof TonConnectError>> = {
     [SEND_TRANSACTION_ERROR_CODES.UNKNOWN_ERROR]: UnknownError,
@@ -22,14 +40,7 @@ const sendTransactionErrors: Partial<Record<CONNECT_EVENT_ERROR_CODES, typeof To
 };
 
 class SendTransactionParser extends RpcParser<'sendTransaction'> {
-    convertToRpcRequest(
-        request: Omit<SendTransactionRequest, 'validUntil' | 'messages'> & {
-            valid_until: number;
-            messages: Array<
-                Omit<Message, 'extraCurrency'> & { extra_currency?: Message['extraCurrency'] }
-            >;
-        }
-    ): WithoutId<SendTransactionRpcRequest> {
+    convertToRpcRequest(request: RpcRequestPayload): WithoutId<SendTransactionRpcRequest> {
         return {
             method: 'sendTransaction',
             params: [JSON.stringify(request)]
@@ -49,9 +60,10 @@ class SendTransactionParser extends RpcParser<'sendTransaction'> {
     convertFromRpcResponse(
         rpcResponse: WithoutId<SendTransactionRpcResponseSuccess>
     ): SendTransactionResponse {
-        return {
-            boc: rpcResponse.result
-        };
+        const isResultJson =
+            typeof rpcResponse.result === 'string' && rpcResponse.result.startsWith('{');
+
+        return isResultJson ? JSON.parse(rpcResponse.result) : { boc: rpcResponse.result };
     }
 }
 

@@ -14,7 +14,14 @@ export interface InjectedWalletApi {
     deviceInfo: DeviceInfo;
     walletInfo: Pick<
         WalletInfoDTO,
-        'name' | 'app_name' | 'tondns' | 'image' | 'about_url' | 'platforms' | 'features'
+        | 'name'
+        | 'app_name'
+        | 'tondns'
+        | 'image'
+        | 'about_url'
+        | 'platforms'
+        | 'features'
+        | 'runtime_config_url'
     >;
     protocolVersion: number;
     isWalletBrowser: boolean;

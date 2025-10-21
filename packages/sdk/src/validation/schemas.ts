@@ -55,7 +55,7 @@ export function validateSendTransactionRequest(data: unknown): ValidationResult 
         return 'Request must be an object';
     }
 
-    const allowedKeys = ['validUntil', 'network', 'from', 'messages'];
+    const allowedKeys = ['validUntil', 'network', 'from', 'messages', 'messagesVariants'];
     if (hasExtraProperties(data, allowedKeys)) {
         return 'Request contains extra properties';
     }
