@@ -554,3 +554,43 @@ export function validateCreateSubscriptionV2Request(data: unknown): ValidationRe
 
     return null;
 }
+
+export function validateCancelSubscriptionV2Request(data: unknown): ValidationResult {
+    if (!isValidObject(data)) {
+        return 'CancelSubscriptionV2Request must be an object';
+    }
+
+    const allowedKeys = ['validUntil', 'network', 'from', 'extensionAddress'];
+    if (hasExtraProperties(data, allowedKeys)) {
+        return 'CancelSubscriptionV2Request contains extra properties';
+    }
+
+    if (data.validUntil === undefined) {
+        return "Incorrect 'validUntil'";
+    }
+    if (!isValidNumber(data.validUntil)) {
+        return "Incorrect 'validUntil'";
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const fiveMinutesFromNow = now + 300;
+    if (data.validUntil > fiveMinutesFromNow) {
+        console.warn(`validUntil (${data.validUntil}) is more than 5 minutes from now (${now})`);
+    }
+
+    if (data.network !== undefined) {
+        if (!isValidNetwork(data.network)) {
+            return "Invalid 'network' format";
+        }
+    }
+
+    if (data.from !== undefined && !isValidAddress(data.from)) {
+        return "Invalid 'from' address format";
+    }
+
+    if (!isValidAddress(data.extensionAddress)) {
+        return "'extensionAddress' is required and must be a valid address";
+    }
+
+    return null;
+}

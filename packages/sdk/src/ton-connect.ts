@@ -4,6 +4,7 @@ import {
     ConnectItem,
     ConnectRequest,
     CreateSubscriptionV2RpcResponseSuccess,
+    CancelSubscriptionV2RpcResponseSuccess,
     SendTransactionRpcResponseSuccess,
     SignDataPayload,
     SignDataRpcResponseSuccess,
@@ -71,7 +72,8 @@ import {
     validateSignDataPayload,
     validateConnectAdditionalRequest,
     validateTonProofItemReply,
-    validateCreateSubscriptionV2Request
+    validateCreateSubscriptionV2Request,
+    validateCancelSubscriptionV2Request
 } from './validation/schemas';
 import { isQaModeEnabled } from './utils/qa-mode';
 import { normalizeBase64 } from './utils/base64';
@@ -605,7 +607,6 @@ export class TonConnect implements ITonConnect {
             throw new TonConnectError('Subscription V2 creation was aborted');
         }
 
-        // Validate the request
         const validationError = validateCreateSubscriptionV2Request(data);
         if (validationError) {
             throw new TonConnectError(validationError);
@@ -686,6 +687,11 @@ export class TonConnect implements ITonConnect {
             throw new TonConnectError('Subscription V2 cancellation was aborted');
         }
 
+        const validationError = validateCancelSubscriptionV2Request(data);
+        if (validationError) {
+            throw new TonConnectError(validationError);
+        }
+
         this.checkConnection();
         checkSubscriptionSupport(this.wallet!.device.features);
 
@@ -719,7 +725,7 @@ export class TonConnect implements ITonConnect {
         }
 
         const result = cancelSubscriptionV2Parser.convertFromRpcResponse(
-            response as CreateSubscriptionV2RpcResponseSuccess
+            response as CancelSubscriptionV2RpcResponseSuccess
         );
 
         this.tracker.trackCancelSubscriptionV2Completed(this.wallet, data, result);
