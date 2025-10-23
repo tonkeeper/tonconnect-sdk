@@ -11,6 +11,7 @@ import { SignDataTester } from './components/SignDataTester/SignDataTester';
 import { MerkleExample } from './components/MerkleExample/MerkleExample';
 import { FindTransactionDemo } from './components/FindTransactionDemo/FindTransactionDemo';
 import { TransferUsdt } from './components/TransferUsdt/TransferUsdt';
+import { SubscriptionForm } from './components/SubscriptionForm/SubscriptionForm';
 
 function HomePage() {
     return (
@@ -21,9 +22,10 @@ function HomePage() {
             <SignDataTester />
             <TransferUsdt />
             <CreateJettonDemo />
-            <TonProofDemo />
+            {/* <TonProofDemo /> */}
             <FindTransactionDemo />
             <MerkleExample />
+            <SubscriptionForm />
             <Footer />
         </div>
     );

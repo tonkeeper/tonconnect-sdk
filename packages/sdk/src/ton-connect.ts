@@ -70,7 +70,8 @@ import {
     validateSendTransactionRequest,
     validateSignDataPayload,
     validateConnectAdditionalRequest,
-    validateTonProofItemReply
+    validateTonProofItemReply,
+    validateCreateSubscriptionV2Request
 } from './validation/schemas';
 import { isQaModeEnabled } from './utils/qa-mode';
 import { normalizeBase64 } from './utils/base64';
@@ -604,6 +605,12 @@ export class TonConnect implements ITonConnect {
             throw new TonConnectError('Subscription V2 creation was aborted');
         }
 
+        // Validate the request
+        const validationError = validateCreateSubscriptionV2Request(data);
+        if (validationError) {
+            throw new TonConnectError(validationError);
+        }
+
         this.checkConnection();
         checkSubscriptionSupport(this.wallet!.device.features);
 
@@ -625,6 +632,8 @@ export class TonConnect implements ITonConnect {
         const from = data.from ?? this.account!.address; // TODO: verify if data.from is needed or can be removed in favor of always using this.account!.address
         const network = data.network ?? this.account!.chain;
 
+        const { firstChargeDate, withdrawAddress, withdrawMsgBody, ...subscriptionRest } = data.subscription;
+
         const response = await this.provider!.sendRequest(
             createSubscriptionV2Parser.convertToRpcRequest({
                 ...data,
@@ -632,10 +641,10 @@ export class TonConnect implements ITonConnect {
                 network,
                 valid_until: data.validUntil,
                 subscription: {
-                    ...data.subscription,
-                    ...(data.subscription.firstChargeDate !== undefined && {
-                        first_charge_date: data.subscription.firstChargeDate
-                    })
+                    ...subscriptionRest,
+                    ...(firstChargeDate !== undefined && { first_charge_date: firstChargeDate }),
+                    withdraw_address: withdrawAddress,
+                    withdraw_msg_body: withdrawMsgBody
                 }
             }),
             {

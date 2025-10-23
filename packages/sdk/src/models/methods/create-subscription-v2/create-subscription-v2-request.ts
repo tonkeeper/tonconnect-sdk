@@ -23,8 +23,8 @@ export interface SubscriptionV2Metadata {
 }
 
 export interface CreateSubscriptionV2Details {
-    /** Subscription UUID defined by merchant */
-    id: string;
+    /** Subscription identifier (uint32) */
+    id: number;
     /** Beneficiary address */
     beneficiary: string;
     /** Amount in nanoTON */
@@ -33,6 +33,10 @@ export interface CreateSubscriptionV2Details {
     period: number;
     /** First charging date (optional) */
     firstChargeDate?: number;
+    /** Address that will receive the subscription payment */
+    withdrawAddress: string;
+    /** Message body that will be sent to the withdraw address */
+    withdrawMsgBody?: string;
     /** Subscription metadata */
     metadata: SubscriptionV2Metadata;
 }

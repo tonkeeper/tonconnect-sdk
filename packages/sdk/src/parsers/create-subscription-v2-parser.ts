@@ -26,8 +26,10 @@ export class CreateSubscriptionV2Parser extends RpcParser<'createSubscriptionV2'
     convertToRpcRequest(
         request: Omit<CreateSubscriptionV2Request, 'validUntil' | 'subscription'> & {
             valid_until: number;
-            subscription: Omit<CreateSubscriptionV2Request['subscription'], 'firstChargeDate'> & {
+            subscription: Omit<CreateSubscriptionV2Request['subscription'], 'firstChargeDate' | 'withdrawAddress' | 'withdrawMsgBody'> & {
                 first_charge_date?: CreateSubscriptionV2Request['subscription']['firstChargeDate'];
+                withdraw_address: CreateSubscriptionV2Request['subscription']['withdrawAddress'];
+                withdraw_msg_body?: CreateSubscriptionV2Request['subscription']['withdrawMsgBody'];
             };
         }
     ): WithoutId<CreateSubscriptionV2RpcRequest> {
