@@ -17,7 +17,7 @@ const baseSubscriptionPayload: CreateSubscriptionV2Request = {
         id: 0,
         period: 1209600, // 2 week
         amount: '100000000',
-        // firstChargeDate: Math.floor(Date.now() / 1000) + 86400, // 1 day from now
+        firstChargeDate: Math.floor(Date.now() / 1000) + 86400, // 1 day from now
         withdrawAddress: 'UQCae11h9N5znylEPRjmuLYGvIwnxkcCw4zVW4BJjVASi5eL',
         withdrawMsgBody: 'asdsadasdasda',
         metadata: {
