@@ -37,7 +37,6 @@ export type RequiredSignDataFeature = {
     types: SignDataType[];
 };
 
-
 /**
  * Required features for the subscription feature.
  */

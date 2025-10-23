@@ -4,7 +4,6 @@ import { Routes, Route } from 'react-router-dom';
 import { Header } from './components/Header/Header';
 import { TxForm } from './components/TxForm/TxForm';
 import { Footer } from './components/Footer/Footer';
-import { TonProofDemo } from './components/TonProofDemo/TonProofDemo';
 import { CreateJettonDemo } from './components/CreateJettonDemo/CreateJettonDemo';
 import { WalletBatchLimitsTester } from './components/WalletBatchLimitsTester/WalletBatchLimitsTester';
 import { SignDataTester } from './components/SignDataTester/SignDataTester';

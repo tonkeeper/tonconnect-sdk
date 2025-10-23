@@ -619,7 +619,7 @@ export type DataSigningEvent = DataSentForSignatureEvent | DataSignedEvent | Dat
 //#region Subscription creation flow
 
 /**
- * Create event for subscription creation initiated. 
+ * Create event for subscription creation initiated.
  */
 export type CreateSubscriptionV2InitiatedEvent = {
     type: 'create-subscription-v2-initiated';

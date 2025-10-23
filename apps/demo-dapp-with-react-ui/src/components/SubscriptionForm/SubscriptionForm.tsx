@@ -5,7 +5,7 @@ import {
     CreateSubscriptionV2Request,
     CreateSubscriptionV2Response,
     useTonConnectUI,
-    useTonWallet,
+    useTonWallet
 } from '@tonconnect/ui-react';
 
 const baseSubscriptionPayload: CreateSubscriptionV2Request = {
@@ -25,24 +25,23 @@ const baseSubscriptionPayload: CreateSubscriptionV2Request = {
             link: 'https://myapp.com',
             tos: 'https://myapp.com/tos',
             merchant: 'Example Merchant',
-            website: 'https://myapp.com',
-        },
-    },
+            website: 'https://myapp.com'
+        }
+    }
 };
 
 export function SubscriptionForm() {
     const [subscription, setSubscription] =
         useState<CreateSubscriptionV2Request>(baseSubscriptionPayload);
-    const [subscriptionRes, setSubscriptionRes] =
-        useState<CreateSubscriptionV2Response | null>(null);
+    const [subscriptionRes, setSubscriptionRes] = useState<CreateSubscriptionV2Response | null>(
+        null
+    );
 
     const wallet = useTonWallet();
     const [tonConnectUi] = useTonConnectUI();
 
     const onChange = useCallback((value: object) => {
-        setSubscription(
-            (value as { updated_src: typeof subscription }).updated_src
-        );
+        setSubscription((value as { updated_src: typeof subscription }).updated_src);
     }, []);
 
     // const loadTemplate = (template: CreateSubscriptionV2Request) => {
@@ -52,7 +51,7 @@ export function SubscriptionForm() {
     const onSend = () =>
         tonConnectUi
             .createSubscription(subscription, { version: 'v2' })
-            .then((res) => setSubscriptionRes(res));
+            .then(res => setSubscriptionRes(res));
 
     return (
         <div className="create-subscription-form">
@@ -81,11 +80,7 @@ export function SubscriptionForm() {
             {subscriptionRes && (
                 <>
                     <h4>Create subscription response</h4>
-                    <ReactJson
-                        name={false}
-                        src={subscriptionRes}
-                        theme="ocean"
-                    />
+                    <ReactJson name={false} src={subscriptionRes} theme="ocean" />
                 </>
             )}
             {wallet && (

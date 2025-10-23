@@ -617,9 +617,9 @@ export class TonConnect implements ITonConnect {
         const BASE_PERIODS = [604_800, 2_592_000, 2_629_800, 31_557_600] as const;
 
         const isValidPeriod =
-          Number.isInteger(data.subscription.period) &&
-          data.subscription.period > 0 &&
-          BASE_PERIODS.some(p => data.subscription.period % p === 0);
+            Number.isInteger(data.subscription.period) &&
+            data.subscription.period > 0 &&
+            BASE_PERIODS.some(p => data.subscription.period % p === 0);
 
         if (!isValidPeriod) {
             throw new TonConnectError(
@@ -632,7 +632,8 @@ export class TonConnect implements ITonConnect {
         const from = data.from ?? this.account!.address; // TODO: verify if data.from is needed or can be removed in favor of always using this.account!.address
         const network = data.network ?? this.account!.chain;
 
-        const { firstChargeDate, withdrawAddress, withdrawMsgBody, ...subscriptionRest } = data.subscription;
+        const { firstChargeDate, withdrawAddress, withdrawMsgBody, ...subscriptionRest } =
+            data.subscription;
 
         const response = await this.provider!.sendRequest(
             createSubscriptionV2Parser.convertToRpcRequest({

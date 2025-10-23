@@ -397,41 +397,50 @@ export function validateTonProofItemReply(data: unknown): ValidationResult {
     return null;
 }
 
-export function validateCreateSubscriptionV2Request(data: unknown): ValidationResult {
-    if (!isValidObject(data)) {
-        return 'CreateSubscriptionV2Request must be an object';
+function validateCreateSubscriptionV2Metadata(metadata: unknown): ValidationResult {
+    if (!isValidObject(metadata)) {
+        return "'subscription.metadata' is required and must be an object";
     }
 
-    const allowedKeys = ['validUntil', 'network', 'from', 'subscription'];
-    if (hasExtraProperties(data, allowedKeys)) {
-        return 'CreateSubscriptionV2Request contains extra properties';
+    const allowedMetadataKeys = [
+        'logo',
+        'name',
+        'description',
+        'link',
+        'tos',
+        'merchant',
+        'website',
+        'category'
+    ];
+    if (hasExtraProperties(metadata, allowedMetadataKeys)) {
+        return 'metadata contains extra properties';
     }
 
-    if (data.validUntil !== undefined) {
-        if (!isValidNumber(data.validUntil)) {
-            return "Incorrect 'validUntil'";
+    // Validate required metadata fields
+    const requiredMetadataFields = [
+        'logo',
+        'name',
+        'description',
+        'link',
+        'tos',
+        'merchant',
+        'website'
+    ] as const;
+    for (const field of requiredMetadataFields) {
+        if (!isValidString(metadata[field])) {
+            return `'subscription.metadata.${field}' is required and must be a string`;
         }
-
-        const now = Math.floor(Date.now() / 1000);
-        const fiveMinutesFromNow = now + 300;
-        if (data.validUntil > fiveMinutesFromNow) {
-            console.warn(
-                `validUntil (${data.validUntil}) is more than 5 minutes from now (${now})`
-            );
-        }
     }
 
-    if (data.network !== undefined) {
-        if (!isValidNetwork(data.network)) {
-            return "Invalid 'network' format";
-        }
+    // Validate optional field
+    if (metadata.category !== undefined && !isValidString(metadata.category)) {
+        return "'subscription.metadata.category' must be a string";
     }
 
-    if (data.from !== undefined && !isValidAddress(data.from)) {
-        return "Invalid 'from' address format";
-    }
+    return null;
+}
 
-    const subscription = data.subscription;
+function validateCreateSubscriptionV2Details(subscription: unknown): ValidationResult {
     if (!isValidObject(subscription)) {
         return "'subscription' is required and must be an object";
     }
@@ -478,7 +487,10 @@ export function validateCreateSubscriptionV2Request(data: unknown): ValidationRe
         return "'subscription.period' must be greater than 0";
     }
 
-    if (subscription.firstChargeDate !== undefined && !isValidNumber(subscription.firstChargeDate)) {
+    if (
+        subscription.firstChargeDate !== undefined &&
+        !isValidNumber(subscription.firstChargeDate)
+    ) {
         return "'subscription.firstChargeDate' must be a number";
     }
 
@@ -486,31 +498,58 @@ export function validateCreateSubscriptionV2Request(data: unknown): ValidationRe
         return "'subscription.withdrawAddress' is required and must be a valid address";
     }
 
-    if (subscription.withdrawMsgBody !== undefined && !isValidString(subscription.withdrawMsgBody)) {
+    if (
+        subscription.withdrawMsgBody !== undefined &&
+        !isValidString(subscription.withdrawMsgBody)
+    ) {
         return "'subscription.withdrawMsgBody' must be a string";
     }
 
-    const metadata = subscription.metadata;
-    if (!isValidObject(metadata)) {
-        return "'subscription.metadata' is required and must be an object";
+    const metadataError = validateCreateSubscriptionV2Metadata(subscription.metadata);
+    if (metadataError) {
+        return metadataError;
     }
 
-    const allowedMetadataKeys = ['logo', 'name', 'description', 'link', 'tos', 'merchant', 'website', 'category'];
-    if (hasExtraProperties(metadata, allowedMetadataKeys)) {
-        return 'metadata contains extra properties';
+    return null;
+}
+
+export function validateCreateSubscriptionV2Request(data: unknown): ValidationResult {
+    if (!isValidObject(data)) {
+        return 'CreateSubscriptionV2Request must be an object';
     }
 
-    // Validate required metadata fields
-    const requiredMetadataFields = ['logo', 'name', 'description', 'link', 'tos', 'merchant', 'website'] as const;
-    for (const field of requiredMetadataFields) {
-        if (!isValidString(metadata[field])) {
-            return `'subscription.metadata.${field}' is required and must be a string`;
+    const allowedKeys = ['validUntil', 'network', 'from', 'subscription'];
+    if (hasExtraProperties(data, allowedKeys)) {
+        return 'CreateSubscriptionV2Request contains extra properties';
+    }
+
+    if (data.validUntil !== undefined) {
+        if (!isValidNumber(data.validUntil)) {
+            return "Incorrect 'validUntil'";
+        }
+
+        const now = Math.floor(Date.now() / 1000);
+        const fiveMinutesFromNow = now + 300;
+        if (data.validUntil > fiveMinutesFromNow) {
+            console.warn(
+                `validUntil (${data.validUntil}) is more than 5 minutes from now (${now})`
+            );
         }
     }
 
-    // Validate optional field
-    if (metadata.category !== undefined && !isValidString(metadata.category)) {
-        return "'subscription.metadata.category' must be a string";
+    if (data.network !== undefined) {
+        if (!isValidNetwork(data.network)) {
+            return "Invalid 'network' format";
+        }
+    }
+
+    if (data.from !== undefined && !isValidAddress(data.from)) {
+        return "Invalid 'from' address format";
+    }
+
+    const subscriptionError = validateCreateSubscriptionV2Details(data.subscription);
+    if (subscriptionError) {
+        return subscriptionError;
     }
 
     return null;
