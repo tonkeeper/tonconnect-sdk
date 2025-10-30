@@ -93,16 +93,21 @@ export function SubscriptionForm() {
 
     const onSend = () => {
         setSubscriptionError(null);
+
         tonConnectUi
             .createSubscription(subscription, { version: 'v2' })
             .then(res => {
+                // TODO: remove this property for release, only for testing purposes
+                // @ts-ignore
+                const extensionAddress = res.extensionAddress as string;
+
                 setSubscriptionRes(res);
                 setSubscriptionError(null);
                 // Auto-fill extensionAddress in cancel form
-                if (res.extensionAddress) {
+                if (extensionAddress) {
                     setCancelPayload(prev => ({
                         ...prev,
-                        extensionAddress: res.extensionAddress as string
+                        extensionAddress: extensionAddress
                     }));
                 }
             })

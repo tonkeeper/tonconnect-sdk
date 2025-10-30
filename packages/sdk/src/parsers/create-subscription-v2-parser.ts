@@ -53,12 +53,7 @@ export class CreateSubscriptionV2Parser extends RpcParser<'createSubscriptionV2'
     convertFromRpcResponse(
         rpcResponse: WithoutId<CreateSubscriptionV2RpcResponseSuccess>
     ): CreateSubscriptionV2Response {
-        return {
-            ...rpcResponse.result,
-            // TODO: remove this property for release, only for testing purposes
-            // @ts-ignore
-            extensionAddress: rpcResponse.result.extension_address
-        };
+        return rpcResponse.result;
     }
 }
 
