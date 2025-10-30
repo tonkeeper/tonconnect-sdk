@@ -1,4 +1,9 @@
-export type Feature = SendTransactionFeatureDeprecated | SendTransactionFeature | SignDataFeature;
+export type Feature =
+    | SendTransactionFeatureDeprecated
+    | SendTransactionFeature
+    | SignDataFeature
+    | SubscriptionFeature;
+
 export type FeatureName = Exclude<Feature, 'SendTransaction'>['name'];
 
 export type SendTransactionFeatureDeprecated = 'SendTransaction';
@@ -10,3 +15,10 @@ export type SendTransactionFeature = {
 
 export type SignDataType = 'text' | 'binary' | 'cell';
 export type SignDataFeature = { name: 'SignData'; types: SignDataType[] };
+
+export type SubscriptionFeature = {
+    name: 'Subscription';
+    versions: {
+        v2: boolean;
+    };
+};

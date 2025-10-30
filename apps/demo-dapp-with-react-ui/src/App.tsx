@@ -4,13 +4,13 @@ import { Routes, Route } from 'react-router-dom';
 import { Header } from './components/Header/Header';
 import { TxForm } from './components/TxForm/TxForm';
 import { Footer } from './components/Footer/Footer';
-import { TonProofDemo } from './components/TonProofDemo/TonProofDemo';
 import { CreateJettonDemo } from './components/CreateJettonDemo/CreateJettonDemo';
 import { WalletBatchLimitsTester } from './components/WalletBatchLimitsTester/WalletBatchLimitsTester';
 import { SignDataTester } from './components/SignDataTester/SignDataTester';
 import { MerkleExample } from './components/MerkleExample/MerkleExample';
 import { FindTransactionDemo } from './components/FindTransactionDemo/FindTransactionDemo';
 import { TransferUsdt } from './components/TransferUsdt/TransferUsdt';
+import { SubscriptionForm } from './components/SubscriptionForm/SubscriptionForm';
 
 function HomePage() {
     return (
@@ -21,9 +21,10 @@ function HomePage() {
             <SignDataTester />
             <TransferUsdt />
             <CreateJettonDemo />
-            <TonProofDemo />
+            {/* <TonProofDemo /> */}
             <FindTransactionDemo />
             <MerkleExample />
+            <SubscriptionForm />
             <Footer />
         </div>
     );

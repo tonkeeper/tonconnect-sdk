@@ -396,3 +396,201 @@ export function validateTonProofItemReply(data: unknown): ValidationResult {
 
     return null;
 }
+
+function validateCreateSubscriptionV2Metadata(metadata: unknown): ValidationResult {
+    if (!isValidObject(metadata)) {
+        return "'subscription.metadata' is required and must be an object";
+    }
+
+    const allowedMetadataKeys = [
+        'logo',
+        'name',
+        'description',
+        'link',
+        'tos',
+        'merchant',
+        'website',
+        'category'
+    ];
+    if (hasExtraProperties(metadata, allowedMetadataKeys)) {
+        return 'metadata contains extra properties';
+    }
+
+    // Validate required metadata fields
+    const requiredMetadataFields = [
+        'logo',
+        'name',
+        'description',
+        'link',
+        'tos',
+        'merchant',
+        'website'
+    ] as const;
+    for (const field of requiredMetadataFields) {
+        if (!isValidString(metadata[field])) {
+            return `'subscription.metadata.${field}' is required and must be a string`;
+        }
+    }
+
+    // Validate optional field
+    if (metadata.category !== undefined && !isValidString(metadata.category)) {
+        return "'subscription.metadata.category' must be a string";
+    }
+
+    return null;
+}
+
+function validateCreateSubscriptionV2Details(subscription: unknown): ValidationResult {
+    if (!isValidObject(subscription)) {
+        return "'subscription' is required and must be an object";
+    }
+
+    const allowedSubscriptionKeys = [
+        'id',
+        'beneficiary',
+        'amount',
+        'period',
+        'firstChargeDate',
+        'withdrawAddress',
+        'withdrawMsgBody',
+        'metadata'
+    ];
+    if (hasExtraProperties(subscription, allowedSubscriptionKeys)) {
+        return 'subscription contains extra properties';
+    }
+
+    if (subscription.id === undefined) {
+        return "'subscription.id' is required";
+    }
+    if (!isValidNumber(subscription.id)) {
+        return "'subscription.id' must be a number (uint32)";
+    }
+    if (!Number.isInteger(subscription.id) || subscription.id < 0 || subscription.id > 4294967295) {
+        return "'subscription.id' must be a valid uint32 (0-4294967295)";
+    }
+
+    if (!isValidAddress(subscription.beneficiary)) {
+        return "'subscription.beneficiary' is required and must be a valid address";
+    }
+
+    if (!isValidString(subscription.amount)) {
+        return "'subscription.amount' is required and must be a string";
+    }
+    if (!POSITIVE_INTEGER_REGEX.test(subscription.amount)) {
+        return "'subscription.amount' must be a valid positive integer";
+    }
+
+    if (!isValidNumber(subscription.period)) {
+        return "'subscription.period' is required and must be a number";
+    }
+    if (subscription.period <= 0) {
+        return "'subscription.period' must be greater than 0";
+    }
+
+    if (
+        subscription.firstChargeDate !== undefined &&
+        !isValidNumber(subscription.firstChargeDate)
+    ) {
+        return "'subscription.firstChargeDate' must be a number";
+    }
+
+    if (!isValidAddress(subscription.withdrawAddress)) {
+        return "'subscription.withdrawAddress' is required and must be a valid address";
+    }
+
+    if (
+        subscription.withdrawMsgBody !== undefined &&
+        !isValidString(subscription.withdrawMsgBody)
+    ) {
+        return "'subscription.withdrawMsgBody' must be a string";
+    }
+
+    const metadataError = validateCreateSubscriptionV2Metadata(subscription.metadata);
+    if (metadataError) {
+        return metadataError;
+    }
+
+    return null;
+}
+
+export function validateCreateSubscriptionV2Request(data: unknown): ValidationResult {
+    if (!isValidObject(data)) {
+        return 'CreateSubscriptionV2Request must be an object';
+    }
+
+    const allowedKeys = ['validUntil', 'network', 'from', 'subscription'];
+    if (hasExtraProperties(data, allowedKeys)) {
+        return 'CreateSubscriptionV2Request contains extra properties';
+    }
+
+    if (data.validUntil !== undefined) {
+        if (!isValidNumber(data.validUntil)) {
+            return "Incorrect 'validUntil'";
+        }
+
+        const now = Math.floor(Date.now() / 1000);
+        const fiveMinutesFromNow = now + 300;
+        if (data.validUntil > fiveMinutesFromNow) {
+            console.warn(
+                `validUntil (${data.validUntil}) is more than 5 minutes from now (${now})`
+            );
+        }
+    }
+
+    if (data.network !== undefined) {
+        if (!isValidNetwork(data.network)) {
+            return "Invalid 'network' format";
+        }
+    }
+
+    if (data.from !== undefined && !isValidAddress(data.from)) {
+        return "Invalid 'from' address format";
+    }
+
+    const subscriptionError = validateCreateSubscriptionV2Details(data.subscription);
+    if (subscriptionError) {
+        return subscriptionError;
+    }
+
+    return null;
+}
+
+export function validateCancelSubscriptionV2Request(data: unknown): ValidationResult {
+    if (!isValidObject(data)) {
+        return 'CancelSubscriptionV2Request must be an object';
+    }
+
+    const allowedKeys = ['validUntil', 'network', 'from', 'extensionAddress'];
+    if (hasExtraProperties(data, allowedKeys)) {
+        return 'CancelSubscriptionV2Request contains extra properties';
+    }
+
+    if (data.validUntil === undefined) {
+        return "Incorrect 'validUntil'";
+    }
+    if (!isValidNumber(data.validUntil)) {
+        return "Incorrect 'validUntil'";
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const fiveMinutesFromNow = now + 300;
+    if (data.validUntil > fiveMinutesFromNow) {
+        console.warn(`validUntil (${data.validUntil}) is more than 5 minutes from now (${now})`);
+    }
+
+    if (data.network !== undefined) {
+        if (!isValidNetwork(data.network)) {
+            return "Invalid 'network' format";
+        }
+    }
+
+    if (data.from !== undefined && !isValidAddress(data.from)) {
+        return "Invalid 'from' address format";
+    }
+
+    if (!isValidAddress(data.extensionAddress)) {
+        return "'extensionAddress' is required and must be a valid address";
+    }
+
+    return null;
+}
