@@ -633,15 +633,15 @@ export class TonConnect implements ITonConnect {
         const from = data.from ?? this.account!.address; // TODO: verify if data.from is needed or can be removed in favor of always using this.account!.address
         const network = data.network ?? this.account!.chain;
 
+        const { subscription, validUntil } = data;
         const { firstChargeDate, withdrawAddress, withdrawMsgBody, ...subscriptionRest } =
-            data.subscription;
+            subscription;
 
         const response = await this.provider!.sendRequest(
             createSubscriptionV2Parser.convertToRpcRequest({
-                ...data,
                 from,
                 network,
-                valid_until: data.validUntil,
+                valid_until: validUntil,
                 subscription: {
                     ...subscriptionRest,
                     ...(firstChargeDate !== undefined && { first_charge_date: firstChargeDate }),

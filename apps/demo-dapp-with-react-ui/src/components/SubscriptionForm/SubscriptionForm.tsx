@@ -9,6 +9,32 @@ import {
     useTonConnectUI,
     useTonWallet
 } from '@tonconnect/ui-react';
+import { Cell, loadMessage } from '@ton/core';
+
+/**
+ * Parse extension address from BOC (external message)
+ * @param boc - Base64 encoded BOC string
+ * @returns Extension address in user-friendly format or error message
+ */
+function parseExtensionAddressFromBoc(boc: string): string {
+    try {
+        const slice = Cell.fromBase64(boc).beginParse();
+        const message = loadMessage(slice);
+
+        // Extract destination address from message info
+        if (message.info.type === 'external-out') {
+            return message.info.dest?.toString() || 'No destination address found';
+        } else if (message.info.type === 'internal') {
+            return message.info.dest.toString();
+        } else if (message.info.type === 'external-in') {
+            return 'External-in message (no destination)';
+        }
+
+        return 'Unknown message type';
+    } catch (error) {
+        return `Error parsing BOC: ${error instanceof Error ? error.message : String(error)}`;
+    }
+}
 
 const baseSubscriptionPayload: CreateSubscriptionV2Request = {
     validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes from now
@@ -32,6 +58,11 @@ const baseSubscriptionPayload: CreateSubscriptionV2Request = {
     }
 };
 
+const baseCancelPayload: CancelSubscriptionV2Request = {
+    validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes from now
+    extensionAddress: ''
+};
+
 export function SubscriptionForm() {
     const [subscription, setSubscription] =
         useState<CreateSubscriptionV2Request>(baseSubscriptionPayload);
@@ -39,14 +70,21 @@ export function SubscriptionForm() {
         null
     );
     const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+
+    const [cancelPayload, setCancelPayload] =
+        useState<CancelSubscriptionV2Request>(baseCancelPayload);
     const [cancelRes, setCancelRes] = useState<CancelSubscriptionV2Response | null>(null);
     const [cancelError, setCancelError] = useState<string | null>(null);
 
     const wallet = useTonWallet();
     const [tonConnectUi] = useTonConnectUI();
 
-    const onChange = useCallback((value: object) => {
+    const onSubscriptionChange = useCallback((value: object) => {
         setSubscription((value as { updated_src: typeof subscription }).updated_src);
+    }, []);
+
+    const onCancelChange = useCallback((value: object) => {
+        setCancelPayload((value as { updated_src: typeof cancelPayload }).updated_src);
     }, []);
 
     // const loadTemplate = (template: CreateSubscriptionV2Request) => {
@@ -60,6 +98,13 @@ export function SubscriptionForm() {
             .then(res => {
                 setSubscriptionRes(res);
                 setSubscriptionError(null);
+                // Auto-fill extensionAddress in cancel form
+                if (res.extensionAddress) {
+                    setCancelPayload(prev => ({
+                        ...prev,
+                        extensionAddress: res.extensionAddress as string
+                    }));
+                }
             })
             .catch(err => {
                 setSubscriptionError(err instanceof Error ? err.message : String(err));
@@ -68,21 +113,14 @@ export function SubscriptionForm() {
     };
 
     const onCancel = () => {
-        if (!subscriptionRes?.boc) {
-            console.error('No subscription response boc available');
+        if (!cancelPayload.extensionAddress) {
+            setCancelError('No extensionAddress provided');
             return;
         }
 
-        const cancelRequest: CancelSubscriptionV2Request = {
-            validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes from now
-            extensionAddress: subscriptionRes.boc,
-            network: subscription.network,
-            from: subscription.from
-        };
-
         setCancelError(null);
         tonConnectUi
-            .cancelSubscription(cancelRequest, { version: 'v2' })
+            .cancelSubscription(cancelPayload, { version: 'v2' })
             .then(res => {
                 setCancelRes(res);
                 setCancelError(null);
@@ -95,66 +133,100 @@ export function SubscriptionForm() {
 
     return (
         <div className="create-subscription-form">
-            <h3>Configure and create subsciption</h3>
-            <h4>Subscription data </h4>
+            <h3>Subscriptions</h3>
 
-            {/* <div className="template-buttons">
-                <button onClick={() => loadTemplate(defaultTextData)}>
-                    Text
-                </button>
-                <button onClick={() => loadTemplate(defaultBinaryData)}>
-                    Binary
-                </button>
-                <button onClick={() => loadTemplate(defaultCellData)}>
-                    Cell
-                </button>
-            </div> */}
-            <ReactJson
-                name={false}
-                src={subscription}
-                theme="ocean"
-                onEdit={onChange}
-                onAdd={onChange}
-                onDelete={onChange}
-            />
-            {subscriptionError && (
-                <>
-                    <h4 style={{ color: 'red' }}>Create subscription error</h4>
-                    <div style={{ color: 'red', padding: '10px', border: '1px solid red' }}>
-                        {subscriptionError}
+            {/* SUBSCRIBE BLOCK */}
+            <div className="subscription-block">
+                <h4 style={{ marginBottom: '10px' }}>Subscription Request Data</h4>
+
+                <ReactJson
+                    name={false}
+                    src={subscription}
+                    theme="ocean"
+                    onEdit={onSubscriptionChange}
+                    onAdd={onSubscriptionChange}
+                    onDelete={onSubscriptionChange}
+                />
+
+                {subscriptionError && (
+                    <>
+                        <h4 style={{ color: 'red' }}>Error</h4>
+                        <div style={{ color: 'red', padding: '10px', border: '1px solid red' }}>
+                            {subscriptionError}
+                        </div>
+                    </>
+                )}
+
+                {subscriptionRes && (
+                    <>
+                        <h4 style={{ color: 'green' }}>Create subscription response</h4>
+                        <ReactJson name={false} src={subscriptionRes} theme="ocean" />
+                        <div
+                            style={{
+                                marginTop: '10px',
+                                padding: '10px',
+                                backgroundColor: '#f0f0f0',
+                                borderRadius: '4px'
+                            }}
+                        >
+                            <strong>Parsed Extension Address from BOC:</strong>
+                            <div
+                                style={{
+                                    fontFamily: 'monospace',
+                                    marginTop: '5px',
+                                    wordBreak: 'break-all'
+                                }}
+                            >
+                                {parseExtensionAddressFromBoc(subscriptionRes.boc)}
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {wallet && (
+                    <div className="buttons-container">
+                        <button onClick={onSend}>Create subscription</button>
                     </div>
-                </>
-            )}
-            {subscriptionRes && (
-                <>
-                    <h4 style={{ color: 'green' }}>Create subscription response</h4>
-                    <ReactJson name={false} src={subscriptionRes} theme="ocean" />
-                </>
-            )}
-            {cancelError && (
-                <>
-                    <h4 style={{ color: 'red' }}>Cancel subscription error</h4>
-                    <div style={{ color: 'red', padding: '10px', border: '1px solid red' }}>
-                        {cancelError}
-                    </div>
-                </>
-            )}
-            {cancelRes && (
-                <>
-                    <h4 style={{ color: 'green' }}>Cancel subscription response</h4>
-                    <ReactJson name={false} src={cancelRes} theme="ocean" />
-                </>
-            )}
-            {wallet && (
-                <div className="buttons-container">
-                    <button onClick={onSend}>Create subscription</button>
-                    {subscriptionRes && (
-                        <button onClick={onCancel} disabled={!subscriptionRes?.boc}>
+                )}
+            </div>
+
+            {/* UNSUBSCRIBE BLOCK */}
+            <div className="cancel-block">
+                <h4 style={{ marginBottom: '10px' }}>Cancel Request Data</h4>
+
+                <ReactJson
+                    name={false}
+                    src={cancelPayload}
+                    theme="ocean"
+                    onEdit={onCancelChange}
+                    onAdd={onCancelChange}
+                    onDelete={onCancelChange}
+                />
+
+                {cancelError && (
+                    <>
+                        <h4 style={{ color: 'red' }}>Error</h4>
+                        <div style={{ color: 'red', padding: '10px', border: '1px solid red' }}>
+                            {cancelError}
+                        </div>
+                    </>
+                )}
+
+                {cancelRes && (
+                    <>
+                        <h4 style={{ color: 'green' }}>Cancel subscription response</h4>
+                        <ReactJson name={false} src={cancelRes} theme="ocean" />
+                    </>
+                )}
+
+                {wallet && (
+                    <div className="buttons-container">
+                        <button onClick={onCancel} disabled={!cancelPayload.extensionAddress}>
                             Cancel subscription
                         </button>
-                    )}
-                </div>
-            )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
