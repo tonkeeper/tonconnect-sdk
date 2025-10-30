@@ -97,9 +97,10 @@ export function SubscriptionForm() {
         tonConnectUi
             .createSubscription(subscription, { version: 'v2' })
             .then(res => {
-                // TODO: remove this property for release, only for testing purposes
-                // @ts-ignore
-                const extensionAddress = res.extensionAddress as string;
+                // TODO: remove res.extensionAddress property for release, only for testing purposes
+                const extensionAddress =
+                    // @ts-ignore
+                    res.extensionAddress ?? parseExtensionAddressFromBoc(res.boc);
 
                 setSubscriptionRes(res);
                 setSubscriptionError(null);
